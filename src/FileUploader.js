@@ -9,6 +9,7 @@ const FileUploader = () => {
   const [progressMap, setProgressMap] = useState({});
   const [previews, setPreviews] = useState([]);
   const [unsupportedFiles, setUnsupportedFiles] = useState([]);
+  const [pendingValidation, setPendingValidation] = useState(null);
 
   // Procesar PDF
   const processPDF = async (file) => {
@@ -25,7 +26,7 @@ const FileUploader = () => {
     return text;
   };
 
-  // Procesar imágenes con OCR (español e inglés)
+  // Procesar imágenes con OCR
   const processImage = async (file, fileName) => {
     return new Promise((resolve, reject) => {
       Tesseract.recognize(file, 'spa+eng', {
@@ -43,51 +44,69 @@ const FileUploader = () => {
     });
   };
 
-  // Manejar cambios en el input de archivos
-  const handleFileChange = (event) => {
-    const files = Array.from(event.target.files).slice(0, 10); // Limitar a 10 archivos
-    let results = [];
-    let previewUrls = [];
-    let unsupported = []; // Para almacenar archivos no soportados
+  // Clasificar y validar datos extraídos
+  const classifyAndValidate = (text, fileName) => {
+    if (text.includes('UTILIZACIÓN ADELANTO DE SUELDO')) {
+      setPendingValidation({
+        type: 'adelanto_utilizacion',
+        description: 'Utilización de adelanto de sueldo',
+        details: { fileName, content: text },
+      });
+    } else if (text.includes('COBRO DE ADS')) {
+      setPendingValidation({
+        type: 'adelanto_cobro',
+        description: 'Cobro de adelanto de sueldo',
+        details: { fileName, content: text },
+      });
+    } else {
+      toast.error(`No se pudo clasificar el documento: ${fileName}`);
+    }
+  };
 
-    files.forEach((file) => {
+  // Manejar cambios en el input de archivos
+  const handleFileChange = async (event) => {
+    const files = Array.from(event.target.files).slice(0, 10); // Limitar a 10 archivos
+    const previewUrls = [];
+    const unsupported = [];
+    const results = [];
+
+    for (const file of files) {
       const fileName = file.name;
 
-      // Verificar tipos soportados
       if (['application/pdf', 'image/jpeg', 'image/jpg', 'image/png'].includes(file.type)) {
-        // Previsualización de imágenes
         if (['image/jpeg', 'image/jpg', 'image/png'].includes(file.type)) {
           const url = URL.createObjectURL(file);
           previewUrls.push({ name: fileName, url });
         }
 
-        // Procesamiento simultáneo
-        if (file.type === 'application/pdf') {
-          processPDF(file).then((text) => {
-            results.push({ name: fileName, type: 'PDF', content: text });
-            setUploadedData((prev) => [...prev, { name: fileName, type: 'PDF', content: text }]);
-            toast.success(`Archivo ${fileName} procesado exitosamente`);
-          });
-        } else if (['image/jpeg', 'image/jpg', 'image/png'].includes(file.type)) {
-          processImage(file, fileName).then((text) => {
-            results.push({ name: fileName, type: 'Image', content: text });
-            setUploadedData((prev) => [...prev, { name: fileName, type: 'Image', content: text }]);
-            toast.success(`Imagen ${fileName} procesada exitosamente`);
-          });
+        try {
+          const text =
+            file.type === 'application/pdf'
+              ? await processPDF(file)
+              : await processImage(file, fileName);
+          results.push({ fileName, content: text });
+          classifyAndValidate(text, fileName);
+        } catch (error) {
+          toast.error(`Error procesando ${fileName}: ${error.message}`);
         }
       } else {
-        unsupported.push(fileName); // Archivos no soportados
+        unsupported.push(fileName);
       }
-    });
-
-    // Mostrar notificación si hay archivos no soportados
-    if (unsupported.length > 0) {
-      setUnsupportedFiles(unsupported);
-      toast.error('Algunos archivos no son soportados: ' + unsupported.join(', '));
     }
 
-    setPreviews(previewUrls); // Guardar previsualizaciones
-    setUnsupportedFiles(unsupported); // Actualizar lista de archivos no soportados
+    setPreviews(previewUrls);
+    setUnsupportedFiles(unsupported);
+  };
+
+  const confirmMovement = (isConfirmed) => {
+    if (!isConfirmed) {
+      toast.info('Movimiento descartado.');
+    } else if (pendingValidation) {
+      const { type, description, details } = pendingValidation;
+      toast.success(`Confirmado: ${description}`);
+      setUploadedData((prev) => [...prev, { ...details, type }]);
+    }
+    setPendingValidation(null);
   };
 
   return (
@@ -101,9 +120,9 @@ const FileUploader = () => {
       />
       <p>Puedes cargar hasta 10 archivos (PDF o imágenes)</p>
 
-      {/* Mensajes para Archivos No Soportados */}
+      {/* Mensajes de Archivos No Soportados */}
       {unsupportedFiles.length > 0 && (
-        <div style={{ color: 'red', marginTop: '10px' }}>
+        <div>
           <h3>Archivos no soportados:</h3>
           <ul>
             {unsupportedFiles.map((fileName, index) => (
@@ -113,54 +132,27 @@ const FileUploader = () => {
         </div>
       )}
 
-      {/* Previsualización de Imágenes */}
+      {/* Previsualización */}
       {previews.length > 0 && (
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', marginTop: '10px' }}>
-          {previews.map((preview, index) => (
-            <div key={index} style={{ textAlign: 'center' }}>
-              <img
-                src={preview.url}
-                alt={preview.name}
-                style={{ width: '100px', height: '100px', objectFit: 'cover' }}
-              />
-              <p style={{ fontSize: '12px' }}>{preview.name}</p>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* Barra de Progreso */}
-      {Object.keys(progressMap).length > 0 && (
         <div>
-          <h2>Progreso:</h2>
-          {Object.entries(progressMap).map(([fileName, progress]) => (
-            <div key={fileName}>
-              <p>{fileName}</p>
-              <progress value={progress} max="100"></progress>
-              <p>{progress}%</p>
-            </div>
+          <h3>Previsualización de Imágenes</h3>
+          {previews.map((preview, index) => (
+            <img key={index} src={preview.url} alt={preview.name} />
           ))}
         </div>
       )}
 
-      {/* Datos Procesados */}
-      <div>
-        <h2>Datos procesados:</h2>
-        {uploadedData.length > 0 ? (
-          <ul>
-            {uploadedData.map((file, index) => (
-              <li key={index}>
-                <strong>{file.name} ({file.type}):</strong>
-                <pre>{file.content}</pre>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p>No se han procesado archivos aún.</p>
-        )}
-      </div>
+      {/* Validación Manual */}
+      {pendingValidation && (
+        <div>
+          <h3>¿Confirmar este movimiento?</h3>
+          <p>Tipo: {pendingValidation.description}</p>
+          <button onClick={() => confirmMovement(true)}>Confirmar</button>
+          <button onClick={() => confirmMovement(false)}>Descartar</button>
+        </div>
+      )}
 
-      {/* Toast Notifications */}
+      {/* Notificaciones */}
       <ToastContainer />
     </div>
   );
