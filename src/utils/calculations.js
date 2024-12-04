@@ -1,3 +1,4 @@
+import services from '../data/services';
 const calculateServices = {
  getMonthlyTotal: () => {
    let total = 0;
