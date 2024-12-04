@@ -1,4 +1,3 @@
-// borra esta linea al pegar
 const accounts = [
  {
    id: "6039",
@@ -31,4 +30,3 @@ const accounts = [
 ];
 
 export default accounts;
-// pega aquí
