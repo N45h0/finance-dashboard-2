@@ -73,7 +73,35 @@ export default function Dashboard() {
      <TabPanel value={value} index={0}>
   <Grid container spacing={3}>
     <Grid item xs={12} md={4}>
-      
+        <Card className="bg-blue-100 hover:bg-blue-200 transition-colors">
+    <CardContent>
+      <Typography variant="h6" className="text-blue-900">Resumen Mensual Total</Typography>
+      <Typography variant="h4" className="mt-2">{formatters.currency(monthlyTotal)}</Typography>
+      <Box sx={{ mt: 2 }}>
+        <div className="flex justify-between items-center mb-2">
+          <Typography className="text-blue-800">LAFIO</Typography>
+          <Typography className="text-blue-800">{formatters.currency(14676.60)}</Typography>
+        </div>
+        <div className="flex justify-between items-center">
+          <Typography className="text-blue-800">Lovia</Typography>
+          <Typography className="text-blue-800">{formatters.currency(23519.60)}</Typography>
+        </div>
+        <Box sx={{ mt: 2 }}>
+          <LinearProgress 
+            variant="determinate" 
+            value={70} 
+            className="h-2 rounded-full bg-blue-200"
+            sx={{
+              "& .MuiLinearProgress-bar": {
+                backgroundColor: "#1a1757"
+              }
+            }}
+          />
+        </Box>
+      </Box>
+    </CardContent>
+  </Card>
+</Grid>
 
     {/* Aquí agregamos el uploader */}
     <Grid item xs={12} md={4}>
