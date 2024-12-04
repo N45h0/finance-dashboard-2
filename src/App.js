@@ -68,19 +68,29 @@ export default function Dashboard() {
      </Tabs>
 
      <TabPanel value={value} index={0}>
-       <Grid container spacing={3}>
-         <Grid item xs={12} md={4}>
-           <Card>
-             <CardContent>
-               <Typography variant="h6">Resumen Mensual Total</Typography>
-               <Typography variant="h4">{formatters.currency(monthlyTotal)}</Typography>
-               <Box sx={{ mt: 2 }}>
-                 <Typography>LAFIO: {formatters.currency(14676.60)}</Typography>
-                 <Typography>Lovia: {formatters.currency(23519.60)}</Typography>
-               </Box>
-             </CardContent>
-           </Card>
-         </Grid>
+  <Grid container spacing={3}>
+    <Grid item xs={12} md={4}>
+      <Card>
+        <CardContent>
+          <Typography variant="h6">Resumen Mensual Total</Typography>
+          <Typography variant="h4">{formatters.currency(monthlyTotal)}</Typography>
+          <Box sx={{ mt: 2 }}>
+            <Typography>LAFIO: {formatters.currency(14676.60)}</Typography>
+            <Typography>Lovia: {formatters.currency(23519.60)}</Typography>
+          </Box>
+        </CardContent>
+      </Card>
+    </Grid>
+
+    {/* Aquí agregamos el uploader */}
+    <Grid item xs={12} md={4}>
+      <Card>
+        <CardContent>
+          <Typography variant="h6">Cargar Archivos</Typography>
+          <FileUploader />
+        </CardContent>
+      </Card>
+    </Grid>
 
          <Grid item xs={12} md={4}>
            <Card>
@@ -303,6 +313,12 @@ export default function Dashboard() {
          ))}
        </Grid>
      </TabPanel>
+          
+     <Tab label="Cargar Archivos" />
+       <TabPanel value={value} index={4}>
+       <FileUploader />
+     </TabPanel>
+
    </Box>
  );
 }
