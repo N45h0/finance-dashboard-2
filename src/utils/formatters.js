@@ -1,5 +1,3 @@
-// formatters.js
-// borra esta linea al pegar
 const formatters = {
  currency: (amount, currency = "UYU") => {
    return new Intl.NumberFormat('es-UY', {
@@ -36,4 +34,3 @@ const formatters = {
 };
 
 export default formatters;
-// pega aquí
