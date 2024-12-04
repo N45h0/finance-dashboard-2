@@ -1,6 +1,3 @@
-
-// manifest.json
-// borra esta linea al pegar
 {
  "short_name": "Finance Dashboard",
  "name": "Dashboard Financiero Personal",
@@ -16,4 +13,3 @@
  "theme_color": "#000000",
  "background_color": "#ffffff"
 }
-// pega aquí
