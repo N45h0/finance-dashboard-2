@@ -1,5 +1,3 @@
-// App.js
-// borra esta linea al pegar
 import React, { useState } from 'react';
 import { Box, Card, CardContent, Typography, Tabs, Tab, Alert, LinearProgress, Grid, List, ListItem, ListItemIcon, ListItemText, Divider } from '@mui/material';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie } from 'recharts';
@@ -307,4 +305,3 @@ export default function Dashboard() {
    </Box>
  );
 }
-// pega aquí
