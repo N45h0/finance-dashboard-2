@@ -1,5 +1,3 @@
-// borra esta linea al pegar
-// calculations.js
 const calculateServices = {
  getMonthlyTotal: () => {
    let total = 0;
@@ -50,4 +48,3 @@ const calculateServices = {
 };
 
 export default calculateServices;
-// pega aquí
