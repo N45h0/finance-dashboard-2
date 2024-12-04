@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import FileUploader from './FileUploader';
 import { Box, Card, CardContent, Typography, Tabs, Tab, Alert, LinearProgress, Grid, List, ListItem, ListItemIcon, ListItemText, Divider } from '@mui/material';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie } from 'recharts';
 import { CreditCard, Calendar } from 'lucide-react';
