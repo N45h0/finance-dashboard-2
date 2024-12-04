@@ -1,5 +1,3 @@
-// package.json
-// borra esta linea al pegar
 {
  "name": "finance-dashboard-2",
  "version": "0.1.0",
@@ -38,4 +36,3 @@
    ]
  }
 }
-// pega aquí
