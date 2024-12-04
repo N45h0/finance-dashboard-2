@@ -1,4 +1,3 @@
-// borra esta linea al pegar
 const services = [
  {
    category: "Digitales",
@@ -206,4 +205,3 @@ const services = [
 ];
 
 export default services;
-// pega aquí
