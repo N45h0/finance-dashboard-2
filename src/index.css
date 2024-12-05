@@ -12,3 +12,36 @@ code {
  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
    monospace;
 }
+/* Agregar al final de src/index.css */
+.loan-card {
+  transition: all 0.3s ease;
+}
+
+.loan-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.progress-bar-success {
+  background-color: #4caf50;
+}
+
+.progress-bar-warning {
+  background-color: #ff9800;
+}
+
+.progress-bar-danger {
+  background-color: #f44336;
+}
+
+.payment-history-item {
+  border-left: 3px solid transparent;
+}
+
+.payment-history-item.paid {
+  border-left-color: #4caf50;
+}
+
+.payment-history-item.pending {
+  border-left-color: #ff9800;
+}
