@@ -177,81 +177,102 @@ export default function Dashboard() {
         </Grid>
       </TabPanel>
 
-      <TabPanel value={value} index={1}>
-        <Grid container spacing={3}>
-          <Grid item xs={12}>
-            <Card>
-              <CardContent>
-                <Typography variant="h6">Capital Total: {formatters.currency(totalLoans)}</Typography>
-                <Grid container spacing={2} sx={{ mt: 2 }}>
-                  {loans.map(loan => (
-                    <Grid item xs={12} md={6} key={loan.id}>
-                      <Card variant="outlined">
-                        <CardContent>
-                          <Typography variant="h6" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                            {loan.name}
-                            {(loan.teaMora > 0 || loan.ceipRetention) && (
-                              <AlertCircle size={20} color="red" />
-                            )}
-                          </Typography>
-                          <Typography color="textSecondary">Titular: {loan.owner}</Typography>
-                          <Box sx={{ mt: 2 }}>
-                            <Grid container spacing={2}>
-                              <Grid item xs={12} md={6}>
-                                <Typography variant="body2">Información de Cuotas</Typography>
-                                <Typography>Cuota actual: {formatters.currency(loan.amount)}</Typography>
-                                <Typography>Pagadas: {loan.paidInstallments} de {loan.installments}</Typography>
-                                {loan.interestRate > 0 && (
-                                  <Typography color="error">TEA: {formatters.percentage(loan.interestRate)}*</Typography>
-                                )}
-                                {loan.moratory > 0 && (
-                                  <Typography color="error">TEA Mora: {formatters.percentage(loan.moratory)}*</Typography>
-                                )}
-                              </Grid>
-                              <Grid item xs={12} md={6}>
-                                <Typography variant="body2">Información de Montos</Typography>
-                                <Typography>Capital: {formatters.currency(loan.capital)}</Typography>
-                                <Typography>Pagado: {formatters.currency(loan.capital * loan.paidInstallments/loan.installments)}</Typography>
-                                <Typography>Restante: {formatters.currency(loan.capital * (1 - loan.paidInstallments/loan.installments))}</Typography>
-                              </Grid>
-                            </Grid>
-                            <Box sx={{ mt: 2 }}>
-                              <Typography variant="body2">Progreso de Pago</Typography>
-                              <LinearProgress
-                                variant="determinate"
-                                value={(loan.paidInstallments/loan.installments) * 100}
-                                sx={{ mt: 1 }}
-                              />
-                              <Typography variant="caption" align="right">
-                                {((loan.paidInstallments/loan.installments) * 100).toFixed(1)}%
-                              </Typography>
-                            </Box>
-                            {loan.paymentHistory && (
-                              <Box sx={{ mt: 2 }}>
-                                <Typography variant="body2">Historial de Pagos</Typography>
-                                <List dense>
-                                  {loan.paymentHistory.map((payment, idx) => (
-                                    <ListItem key={idx}>
-                                      <ListItemText
-                                        primary={formatters.date(payment.date)}
-                                        secondary={formatters.currency(payment.amount)}
-                                      />
-                                    </ListItem>
-                                  ))}
-                                </List>
-                              </Box>
-                            )}
-                          </Box>
-                        </CardContent>
-                      </Card>
-                    </Grid>
-                  ))}
-                </Grid>
-              </CardContent>
-            </Card>
+<TabPanel value={value} index={1}>
+  <Grid container spacing={3}>
+    {/* Resumen de Préstamos */}
+    <Grid item xs={12}>
+      <Card className="bg-blue-50">
+        <CardContent>
+          <Grid container spacing={2}>
+            <Grid item xs={12} md={4}>
+              <Typography variant="subtitle1">Capital Total</Typography>
+              <Typography variant="h5">
+                {formatters.currency(calculateLoans.getTotalCapital())}
+              </Typography>
+            </Grid>
+            <Grid item xs={12} md={4}>
+              <Typography variant="subtitle1">Total Pagado</Typography>
+              <Typography variant="h5">
+                {formatters.currency(calculateLoans.getTotalPaid())}
+              </Typography>
+            </Grid>
+            <Grid item xs={12} md={4}>
+              <Typography variant="subtitle1">Saldo Restante</Typography>
+              <Typography variant="h5">
+                {formatters.currency(calculateLoans.getRemainingBalance())}
+              </Typography>
+            </Grid>
           </Grid>
-        </Grid>
-      </TabPanel>
+          <LinearProgress
+            variant="determinate"
+            value={(calculateLoans.getTotalPaid() / calculateLoans.getTotalCapital()) * 100}
+            sx={{ mt: 2, height: 8, borderRadius: 4 }}
+          />
+        </CardContent>
+      </Card>
+    </Grid>
+
+    {/* Lista de Préstamos */}
+    {loans.map(loan => (
+      <Grid item xs={12} md={6} key={loan.id}>
+        <Card>
+          <CardContent>
+            <Typography variant="h6">{loan.name}</Typography>
+            <Typography color="textSecondary">Titular: {loan.owner}</Typography>
+            
+            <Box sx={{ mt: 2 }}>
+              <Grid container spacing={2}>
+                <Grid item xs={6}>
+                  <Typography variant="subtitle2">Capital</Typography>
+                  <Typography>{formatters.currency(loan.capital)}</Typography>
+                </Grid>
+                <Grid item xs={6}>
+                  <Typography variant="subtitle2">Cuota</Typography>
+                  <Typography>{formatters.currency(loan.amount)}</Typography>
+                </Grid>
+              </Grid>
+              
+              {loan.interestRate > 0 && (
+                <Box sx={{ mt: 2 }}>
+                  <Typography variant="subtitle2" color="error">
+                    TEA: {loan.interestRate}% | Mora: {loan.moratory}%
+                  </Typography>
+                </Box>
+              )}
+              
+              <Box sx={{ mt: 2 }}>
+                <Typography variant="subtitle2">
+                  Progreso: {loan.paidInstallments}/{loan.installments} cuotas
+                </Typography>
+                <LinearProgress
+                  variant="determinate"
+                  value={calculateLoans.getProgress(loan)}
+                  sx={{ mt: 1, height: 6, borderRadius: 3 }}
+                />
+              </Box>
+              
+              <PaymentHistory loan={loan} />
+            </Box>
+          </CardContent>
+        </Card>
+      </Grid>
+    ))}
+
+    {/* Préstamos Vencidos */}
+    {calculateLoans.getOverdueLoans().length > 0 && (
+      <Grid item xs={12}>
+        <Alert severity="error">
+          <AlertTitle>Préstamos Vencidos</AlertTitle>
+          {calculateLoans.getOverdueLoans().map(loan => (
+            <Typography key={loan.id}>
+              {loan.name} - Próximo vencimiento: {formatters.date(loan.nextPaymentDate)}
+            </Typography>
+          ))}
+        </Alert>
+      </Grid>
+    )}
+  </Grid>
+</TabPanel>
 
       <TabPanel value={value} index={2}>
         <Grid container spacing={3}>
