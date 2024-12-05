@@ -1,18 +1,16 @@
 import React, { useState } from 'react';
-import { Box, Card, CardContent, Typography, Tabs, Tab, Alert, LinearProgress, Grid, List, ListItem, ListItemIcon, ListItemText, Divider } from '@mui/material';
+import { Box, Card, CardContent, Typography, Tabs, Tab, Alert, AlertTitle, LinearProgress, Grid, List, ListItem, ListItemIcon, ListItemText, Divider } from '@mui/material';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie } from 'recharts';
 import { CreditCard, Calendar } from 'lucide-react';
 import FileUploader from './FileUploader';
 import { ToastContainer } from 'react-toastify';
-import { Alert, AlertTitle } from '@mui/material';
 import 'react-toastify/dist/ReactToastify.css';
 
 // Importar datos
 import loans from './data/loans';
 import services from './data/services';
 import accounts from './data/accounts';
-import calculateLoans from './utils/calculations';
-import calculateServices from './utils/calculations';
+import { calculateLoans, calculateServices } from './utils/calculations';
 import PaymentHistory from './components/PaymentHistory';
 import formatters from './utils/formatters';
 function TabPanel(props) {
