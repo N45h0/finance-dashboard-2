@@ -49,4 +49,4 @@ const calculateLoans = {
   }
 };
 
-export default calculateLoans;
+export default calculateLoans, calculateServices;
