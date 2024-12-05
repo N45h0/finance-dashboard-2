@@ -423,4 +423,3 @@ export default function Dashboard() {
    </Box>
  );
 }
-export { calculateLoans, calculateServices };
