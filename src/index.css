@@ -12,7 +12,7 @@ code {
  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
    monospace;
 }
-/* Agregar al final de src/index.css */
+
 .loan-card {
   transition: all 0.3s ease;
 }
