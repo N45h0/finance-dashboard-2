@@ -4,13 +4,16 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsi
 import { CreditCard, Calendar } from 'lucide-react';
 import FileUploader from './FileUploader';
 import { ToastContainer } from 'react-toastify';
+import { Alert, AlertTitle } from '@mui/material';
 import 'react-toastify/dist/ReactToastify.css';
 
 // Importar datos
 import loans from './data/loans';
 import services from './data/services';
 import accounts from './data/accounts';
+import calculateLoans from './utils/calculations';
 import calculateServices from './utils/calculations';
+import PaymentHistory from './components/PaymentHistory';
 import formatters from './utils/formatters';
 function TabPanel(props) {
   const { children, value, index, ...other } = props;
