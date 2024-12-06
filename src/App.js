@@ -112,9 +112,14 @@ export default function Dashboard() {
             <Card>
               <CardContent>
                 <Typography variant="h6">Resumen Mensual Total</Typography>
-                <Typography variant="h4" className="mt-2">{formatters.currency(monthlyTotal)}</Typography>
+                <Typography variant="h4" sx={{ mt: 2 }}>{formatters.currency(monthlyTotal)}</Typography>
                 <Box sx={{ mt: 2 }}>
-                  <div className="flex justify-between items-center mb-2">
+                  <Box sx={{ 
+                   display: 'flex', 
+                   justifyContent: 'space-between', 
+                   alignItems: 'center', 
+                   mb: 2 
+                 }}>
                     <Typography>LAFIO</Typography>
                     <Typography>{formatters.currency(14676.60)}</Typography>
                   </div>
@@ -136,15 +141,6 @@ export default function Dashboard() {
                     />
                   </Box>
                 </Box>
-              </CardContent>
-            </Card>
-          </Grid>
-
-          <Grid item xs={12} md={4}>
-            <Card>
-              <CardContent>
-                <Typography variant="h6">Cargar Archivos</Typography>
-                <FileUploader />
               </CardContent>
             </Card>
           </Grid>
@@ -182,7 +178,7 @@ export default function Dashboard() {
   <Grid container spacing={3}>
     {/* Resumen de Préstamos */}
     <Grid item xs={12}>
-      <Card className="bg-blue-50">
+    <Card sx={{ bgcolor: 'primary.light' }}>
         <CardContent>
           <Grid container spacing={2}>
             <Grid item xs={12} md={4}>
