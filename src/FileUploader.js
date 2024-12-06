@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import Tesseract from 'tesseract.js';
+import { createWorker } from 'tesseract.js';
 import * as pdfjsLib from 'pdfjs-dist';
 import { ToastContainer, toast } from 'react-toastify';
 import { Button, Box, Typography, CircularProgress } from '@mui/material';
@@ -17,23 +17,32 @@ const FileUploader = () => {
 
   // Procesar PDF
   const processPDF = async (file) => {
-    const arrayBuffer = await file.arrayBuffer();
-    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+    try {
+      const arrayBuffer = await file.arrayBuffer();
+      const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
 
-    let text = '';
-    for (let i = 1; i <= pdf.numPages; i++) {
-      const page = await pdf.getPage(i);
-      const content = await page.getTextContent();
-      text += content.items.map((item) => item.str).join(' ');
+      let text = '';
+      for (let i = 1; i <= pdf.numPages; i++) {
+        const page = await pdf.getPage(i);
+        const content = await page.getTextContent();
+        text += content.items.map((item) => item.str).join(' ');
+      }
+
+      return text;
+    } catch (error) {
+      console.error('Error processing PDF:', error);
+      throw new Error('Error al procesar el PDF');
     }
-
-    return text;
   };
 
   // Procesar imágenes con OCR
   const processImage = async (file, fileName) => {
-    return new Promise((resolve, reject) => {
-      Tesseract.recognize(file, 'spa+eng', {
+    try {
+      // Inicializar worker con configuración específica para Vercel
+      const worker = await createWorker({
+        workerPath: '/tesseract/worker.min.js',
+        langPath: '/tesseract/lang-data',
+        corePath: '/tesseract/tesseract-core.wasm.js',
         logger: (info) => {
           if (info.status === 'recognizing text') {
             setProgressMap((prev) => ({
@@ -42,28 +51,42 @@ const FileUploader = () => {
             }));
           }
         },
-      })
-        .then((result) => resolve(result.data.text))
-        .catch((error) => reject(error));
-    });
+      });
+
+      await worker.loadLanguage('spa+eng');
+      await worker.initialize('spa+eng');
+      
+      const { data: { text } } = await worker.recognize(file);
+      
+      await worker.terminate();
+      return text;
+    } catch (error) {
+      console.error('Error processing image:', error);
+      throw new Error('Error al procesar la imagen');
+    }
   };
 
   // Clasificar y validar datos extraídos
   const classifyAndValidate = (text, fileName) => {
-    if (text.includes('UTILIZACIÓN ADELANTO DE SUELDO')) {
-      setPendingValidation({
-        type: 'adelanto_utilizacion',
-        description: 'Utilización de adelanto de sueldo',
-        details: { fileName, content: text },
-      });
-    } else if (text.includes('COBRO DE ADS')) {
-      setPendingValidation({
-        type: 'adelanto_cobro',
-        description: 'Cobro de adelanto de sueldo',
-        details: { fileName, content: text },
-      });
-    } else {
-      toast.error(`No se pudo clasificar el documento: ${fileName}`);
+    try {
+      if (text.includes('UTILIZACIÓN ADELANTO DE SUELDO')) {
+        setPendingValidation({
+          type: 'adelanto_utilizacion',
+          description: 'Utilización de adelanto de sueldo',
+          details: { fileName, content: text },
+        });
+      } else if (text.includes('COBRO DE ADS')) {
+        setPendingValidation({
+          type: 'adelanto_cobro',
+          description: 'Cobro de adelanto de sueldo',
+          details: { fileName, content: text },
+        });
+      } else {
+        toast.error(`No se pudo clasificar el documento: ${fileName}`);
+      }
+    } catch (error) {
+      console.error('Error classifying document:', error);
+      toast.error(`Error al clasificar el documento: ${fileName}`);
     }
   };
 
@@ -94,12 +117,17 @@ const FileUploader = () => {
             previewUrls.push({ name: fileName, url });
           }
 
-          const text = file.type === 'application/pdf'
-            ? await processPDF(file)
-            : await processImage(file, fileName);
-          
-          results.push({ fileName, content: text });
-          classifyAndValidate(text, fileName);
+          let text;
+          try {
+            text = file.type === 'application/pdf'
+              ? await processPDF(file)
+              : await processImage(file, fileName);
+            
+            results.push({ fileName, content: text });
+            classifyAndValidate(text, fileName);
+          } catch (error) {
+            toast.error(`Error procesando ${fileName}: ${error.message}`);
+          }
         } else {
           unsupported.push(fileName);
         }
@@ -116,7 +144,7 @@ const FileUploader = () => {
         toast.success('Archivos procesados correctamente');
       }
     } catch (error) {
-      toast.error(`Error al procesar archivos: ${error.message}`);
+      toast.error(`Error general: ${error.message}`);
     } finally {
       setIsProcessing(false);
       setSelectedFiles([]);
@@ -174,13 +202,16 @@ const FileUploader = () => {
         </Typography>
       )}
 
+      {/* Mensajes informativos */}
       <Typography variant="body2" color="text.secondary">
-        Puedes cargar hasta 10 archivos (PDF o imágenes)
+        Formatos soportados: PDF, JPG, JPEG, PNG (máximo 10 archivos)
       </Typography>
 
       {unsupportedFiles.length > 0 && (
         <Box sx={{ mt: 2 }}>
-          <Typography variant="subtitle2">Archivos no soportados:</Typography>
+          <Typography variant="subtitle2" color="error">
+            Archivos no soportados:
+          </Typography>
           <ul>
             {unsupportedFiles.map((fileName, index) => (
               <li key={index}>{fileName}</li>
@@ -189,22 +220,38 @@ const FileUploader = () => {
         </Box>
       )}
 
+      {/* Previsualizaciones */}
       {previews.length > 0 && (
         <Box sx={{ mt: 2 }}>
-          <Typography variant="subtitle2">Previsualización de Imágenes</Typography>
-          {previews.map((preview, index) => (
-            <img 
-              key={index} 
-              src={preview.url} 
-              alt={preview.name}
-              style={{ maxWidth: '200px', margin: '8px' }} 
-            />
-          ))}
+          <Typography variant="subtitle2">Previsualización</Typography>
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 1 }}>
+            {previews.map((preview, index) => (
+              <img 
+                key={index} 
+                src={preview.url} 
+                alt={preview.name}
+                style={{ 
+                  maxWidth: '200px',
+                  maxHeight: '200px',
+                  objectFit: 'contain',
+                  border: '1px solid #ccc',
+                  borderRadius: '4px'
+                }} 
+              />
+            ))}
+          </Box>
         </Box>
       )}
 
+      {/* Validación pendiente */}
       {pendingValidation && (
-        <Box sx={{ mt: 2, p: 2, border: '1px solid #ccc', borderRadius: 1 }}>
+        <Box sx={{ 
+          mt: 2, 
+          p: 2, 
+          border: '1px solid #ccc', 
+          borderRadius: 1,
+          backgroundColor: '#f5f5f5'
+        }}>
           <Typography variant="subtitle1">¿Confirmar este movimiento?</Typography>
           <Typography variant="body2" sx={{ mb: 2 }}>
             Tipo: {pendingValidation.description}
