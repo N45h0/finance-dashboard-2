@@ -1,32 +1,33 @@
 import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, Typography, List, ListItem, ListItemText, Chip } from '@mui/material';
 import formatters from '../utils/formatters';
 
 const PaymentHistory = ({ loan }) => {
   return (
-    <Card className="mt-4">
-      <CardHeader>
-        <CardTitle className="text-lg">Historial de Pagos - {loan.name}</CardTitle>
-      </CardHeader>
+    <Card variant="outlined" className="mt-4">
       <CardContent>
-        <div className="space-y-2">
+        <Typography variant="h6" gutterBottom>
+          Historial de Pagos - {loan.name}
+        </Typography>
+        <List>
           {loan.paymentHistory.map((payment, index) => (
-            <div key={index} className="flex justify-between items-center p-2 border-b last:border-0">
-              <div>
-                <div className="font-medium">{formatters.date(payment.date)}</div>
-                <div className="text-sm text-gray-600">{formatters.currency(payment.amount)}</div>
-              </div>
-              <Badge variant={payment.status === 'paid' ? 'success' : 'warning'}>
-                {payment.status === 'paid' ? 'Pagado' : 'Pendiente'}
-              </Badge>
-            </div>
+            <ListItem key={index} divider>
+              <ListItemText
+                primary={formatters.date(payment.date)}
+                secondary={formatters.currency(payment.amount)}
+              />
+              <Chip
+                label={payment.status === 'paid' ? 'Pagado' : 'Pendiente'}
+                color={payment.status === 'paid' ? 'success' : 'warning'}
+                size="small"
+              />
+            </ListItem>
           ))}
-        </div>
+        </List>
         {loan.nextPaymentDate && (
-          <div className="mt-4 text-sm text-gray-600">
+          <Typography variant="subtitle2" color="textSecondary" sx={{ mt: 2 }}>
             Próximo vencimiento: {formatters.date(loan.nextPaymentDate)}
-          </div>
+          </Typography>
         )}
       </CardContent>
     </Card>
