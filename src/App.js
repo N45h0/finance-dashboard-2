@@ -11,6 +11,7 @@ import accounts from './data/accounts';
 import { calculateLoans, calculateServices } from './utils/calculations';
 import PaymentHistory from './components/PaymentHistory';
 import formatters from './utils/formatters';
+
 function TabPanel(props) {
   const { children, value, index, ...other } = props;
   return (
@@ -79,28 +80,30 @@ export default function Dashboard() {
             <Typography variant="h6">Resumen Global de Préstamos</Typography>
             <Grid container spacing={2} sx={{ mt: 2 }}>
               <Grid item xs={12} sm={4}>
-                <Box bgcolor="blue.100" p={2} borderRadius={2}>
+                <Box sx={{ bgcolor: 'primary.light', p: 2, borderRadius: 2 }}>
                   <Typography variant="body2">Monto Total Préstamos</Typography>
                   <Typography variant="h6">{formatters.currency(totalLoans)}</Typography>
                 </Box>
               </Grid>
               <Grid item xs={12} sm={4}>
-                <Box bgcolor="green.100" p={2} borderRadius={2}>
+                <Box sx={{ bgcolor: 'success.light', p: 2, borderRadius: 2 }}>
                   <Typography variant="body2">Monto Pagado</Typography>
                   <Typography variant="h6">{formatters.currency(totalPaid)}</Typography>
                 </Box>
               </Grid>
               <Grid item xs={12} sm={4}>
-                <Box bgcolor="orange.100" p={2} borderRadius={2}>
+                <Box sx={{ bgcolor: 'warning.light', p: 2, borderRadius: 2 }}>
                   <Typography variant="body2">Monto Restante</Typography>
                   <Typography variant="h6">{formatters.currency(totalRemaining)}</Typography>
                 </Box>
               </Grid>
             </Grid>
-            <Box mt={2}>
+            <Box sx={{ mt: 2 }}>
               <Typography variant="body2">Progreso de Pago Total</Typography>
               <LinearProgress variant="determinate" value={overallProgress} sx={{ mt: 1 }} />
-              <Typography variant="caption" align="right">{overallProgress.toFixed(1)}%</Typography>
+              <Typography variant="caption" sx={{ display: 'block', textAlign: 'right' }}>
+                {overallProgress.toFixed(1)}%
+              </Typography>
             </Box>
           </CardContent>
         </Card>
@@ -113,18 +116,22 @@ export default function Dashboard() {
                 <Typography variant="h4" sx={{ mt: 2 }}>{formatters.currency(monthlyTotal)}</Typography>
                 <Box sx={{ mt: 2 }}>
                   <Box sx={{ 
-                   display: 'flex', 
-                   justifyContent: 'space-between', 
-                   alignItems: 'center', 
-                   mb: 2 
-                 }}>
+                    display: 'flex', 
+                    justifyContent: 'space-between', 
+                    alignItems: 'center', 
+                    mb: 2 
+                  }}>
                     <Typography>LAFIO</Typography>
                     <Typography>{formatters.currency(14676.60)}</Typography>
-                  </div>
-                  <div className="flex justify-between items-center">
+                  </Box>
+                  <Box sx={{ 
+                    display: 'flex', 
+                    justifyContent: 'space-between', 
+                    alignItems: 'center'
+                  }}>
                     <Typography>Lovia</Typography>
                     <Typography>{formatters.currency(23519.60)}</Typography>
-                  </div>
+                  </Box>
                   <Box sx={{ mt: 2 }}>
                     <LinearProgress 
                       variant="determinate"
@@ -172,102 +179,99 @@ export default function Dashboard() {
         </Grid>
       </TabPanel>
 
-<TabPanel value={value} index={1}>
-  <Grid container spacing={3}>
-    {/* Resumen de Préstamos */}
-    <Grid item xs={12}>
-    <Card sx={{ bgcolor: 'primary.light' }}>
-        <CardContent>
-          <Grid container spacing={2}>
-            <Grid item xs={12} md={4}>
-              <Typography variant="subtitle1">Capital Total</Typography>
-              <Typography variant="h5">
-                {formatters.currency(calculateLoans.getTotalCapital())}
-              </Typography>
-            </Grid>
-            <Grid item xs={12} md={4}>
-              <Typography variant="subtitle1">Total Pagado</Typography>
-              <Typography variant="h5">
-                {formatters.currency(calculateLoans.getTotalPaid())}
-              </Typography>
-            </Grid>
-            <Grid item xs={12} md={4}>
-              <Typography variant="subtitle1">Saldo Restante</Typography>
-              <Typography variant="h5">
-                {formatters.currency(calculateLoans.getRemainingBalance())}
-              </Typography>
-            </Grid>
-          </Grid>
-          <LinearProgress
-            variant="determinate"
-            value={(calculateLoans.getTotalPaid() / calculateLoans.getTotalCapital()) * 100}
-            sx={{ mt: 2, height: 8, borderRadius: 4 }}
-          />
-        </CardContent>
-      </Card>
-    </Grid>
-
-    {/* Lista de Préstamos */}
-    {loans.map(loan => (
-      <Grid item xs={12} md={6} key={loan.id}>
-        <Card>
-          <CardContent>
-            <Typography variant="h6">{loan.name}</Typography>
-            <Typography color="textSecondary">Titular: {loan.owner}</Typography>
-            
-            <Box sx={{ mt: 2 }}>
-              <Grid container spacing={2}>
-                <Grid item xs={6}>
-                  <Typography variant="subtitle2">Capital</Typography>
-                  <Typography>{formatters.currency(loan.capital)}</Typography>
+      <TabPanel value={value} index={1}>
+        <Grid container spacing={3}>
+          <Grid item xs={12}>
+            <Card sx={{ bgcolor: 'primary.light' }}>
+              <CardContent>
+                <Grid container spacing={2}>
+                  <Grid item xs={12} md={4}>
+                    <Typography variant="subtitle1">Capital Total</Typography>
+                    <Typography variant="h5">
+                      {formatters.currency(calculateLoans.getTotalCapital())}
+                    </Typography>
+                  </Grid>
+                  <Grid item xs={12} md={4}>
+                    <Typography variant="subtitle1">Total Pagado</Typography>
+                    <Typography variant="h5">
+                      {formatters.currency(calculateLoans.getTotalPaid())}
+                    </Typography>
+                  </Grid>
+                  <Grid item xs={12} md={4}>
+                    <Typography variant="subtitle1">Saldo Restante</Typography>
+                    <Typography variant="h5">
+                      {formatters.currency(calculateLoans.getRemainingBalance())}
+                    </Typography>
+                  </Grid>
                 </Grid>
-                <Grid item xs={6}>
-                  <Typography variant="subtitle2">Cuota</Typography>
-                  <Typography>{formatters.currency(loan.amount)}</Typography>
-                </Grid>
-              </Grid>
-              
-              {loan.interestRate > 0 && (
-                <Box sx={{ mt: 2 }}>
-                  <Typography variant="subtitle2" color="error">
-                    TEA: {loan.interestRate}% | Mora: {loan.moratory}%
-                  </Typography>
-                </Box>
-              )}
-              
-              <Box sx={{ mt: 2 }}>
-                <Typography variant="subtitle2">
-                  Progreso: {loan.paidInstallments}/{loan.installments} cuotas
-                </Typography>
                 <LinearProgress
                   variant="determinate"
-                  value={calculateLoans.getProgress(loan)}
-                  sx={{ mt: 1, height: 6, borderRadius: 3 }}
+                  value={(calculateLoans.getTotalPaid() / calculateLoans.getTotalCapital()) * 100}
+                  sx={{ mt: 2, height: 8, borderRadius: 4 }}
                 />
-              </Box>
-              
-              <PaymentHistory loan={loan} />
-            </Box>
-          </CardContent>
-        </Card>
-      </Grid>
-    ))}
+              </CardContent>
+            </Card>
+          </Grid>
 
-    {/* Préstamos Vencidos */}
-    {calculateLoans.getOverdueLoans().length > 0 && (
-      <Grid item xs={12}>
-        <Alert severity="error">
-          <AlertTitle>Préstamos Vencidos</AlertTitle>
-          {calculateLoans.getOverdueLoans().map(loan => (
-            <Typography key={loan.id}>
-              {loan.name} - Próximo vencimiento: {formatters.date(loan.nextPaymentDate)}
-            </Typography>
+          {loans.map(loan => (
+            <Grid item xs={12} md={6} key={loan.id}>
+              <Card>
+                <CardContent>
+                  <Typography variant="h6">{loan.name}</Typography>
+                  <Typography color="textSecondary">Titular: {loan.owner}</Typography>
+                  
+                  <Box sx={{ mt: 2 }}>
+                    <Grid container spacing={2}>
+                      <Grid item xs={6}>
+                        <Typography variant="subtitle2">Capital</Typography>
+                        <Typography>{formatters.currency(loan.capital)}</Typography>
+                      </Grid>
+                      <Grid item xs={6}>
+                        <Typography variant="subtitle2">Cuota</Typography>
+                        <Typography>{formatters.currency(loan.amount)}</Typography>
+                      </Grid>
+                    </Grid>
+                    
+                    {loan.interestRate > 0 && (
+                      <Box sx={{ mt: 2 }}>
+                        <Typography variant="subtitle2" color="error">
+                          TEA: {loan.interestRate}% | Mora: {loan.moratory}%
+                        </Typography>
+                      </Box>
+                    )}
+                    
+                    <Box sx={{ mt: 2 }}>
+                      <Typography variant="subtitle2">
+                        Progreso: {loan.paidInstallments}/{loan.installments} cuotas
+                      </Typography>
+                      <LinearProgress
+                        variant="determinate"
+                        value={calculateLoans.getProgress(loan)}
+                        sx={{ mt: 1, height: 6, borderRadius: 3 }}
+                      />
+                    </Box>
+                    
+                    <PaymentHistory loan={loan} />
+                  </Box>
+                </CardContent>
+              </Card>
+            </Grid>
           ))}
-        </Alert>
-      </Grid>
-    )}
-  </Grid>
-</TabPanel>
+
+          {calculateLoans.getOverdueLoans().length > 0 && (
+            <Grid item xs={12}>
+              <Alert severity="error">
+                <AlertTitle>Préstamos Vencidos</AlertTitle>
+                {calculateLoans.getOverdueLoans().map(loan => (
+                  <Typography key={loan.id}>
+                    {loan.name} - Próximo vencimiento: {formatters.date(loan.nextPaymentDate)}
+                  </Typography>
+                ))}
+              </Alert>
+            </Grid>
+          )}
+        </Grid>
+      </TabPanel>
 
       <TabPanel value={value} index={2}>
         <Grid container spacing={3}>
@@ -294,7 +298,7 @@ export default function Dashboard() {
                                   value={service.contract.progress} 
                                   sx={{ mt: 1 }}
                                 />
-                                <Typography variant="caption" align="right">
+                                <Typography variant="caption" sx={{ display: 'block', textAlign: 'right' }}>
                                   {service.contract.progress.toFixed(1)}%
                                 </Typography>
                               </>
@@ -346,7 +350,7 @@ export default function Dashboard() {
                       value={contract.progress}
                       sx={{ mb: 1 }}
                     /> 
-                    <Typography variant="caption" align="right">
+                    <Typography variant="caption" sx={{ display: 'block', textAlign: 'right' }}>
                       {contract.progress.toFixed(1)}%
                       ({contract.daysUntilRenewal} días para renovación)
                     </Typography>
@@ -358,62 +362,62 @@ export default function Dashboard() {
         </Grid>
       </TabPanel>
 
-     <TabPanel value={value} index={3}>
-       <Grid container spacing={3}>
-         {accounts.map((account) => (
-           <Grid item xs={12} md={4} key={account.id}>
-             <Card>
-               <CardContent>
-                 <Typography variant="h6">{account.name} ({account.id})</Typography>
-                 <Box sx={{ mt: 2 }}>
-                   <Typography display="flex" alignItems="center" gap={1}>
-                     <CreditCard size={20} />
-                     {account.type}
-                     {account.expiry && ` (vence ${account.expiry})`}
-                   </Typography>
-                   
-                   {account.income && (
-                     <Box sx={{ mt: 2 }}>
-                       <Typography variant="subtitle2">Ingresos:</Typography>
-                       <List dense>
-                         {account.income.map((income, idx) => (
-                           <ListItem key={idx}>
-                             <ListItemText primary={income} />
-                           </ListItem>
-                         ))}
-                       </List>
-                     </Box>
-                   )}
+      <TabPanel value={value} index={3}>
+        <Grid container spacing={3}>
+          {accounts.map((account) => (
+            <Grid item xs={12} md={4} key={account.id}>
+              <Card>
+                <CardContent>
+                  <Typography variant="h6">{account.name} ({account.id})</Typography>
+                  <Box sx={{ mt: 2 }}>
+                    <Typography sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <CreditCard size={20} />
+                      {account.type}
+                      {account.expiry && ` (vence ${account.expiry})`}
+                    </Typography>
+                    
+                    {account.income && (
+                      <Box sx={{ mt: 2 }}>
+                        <Typography variant="subtitle2">Ingresos:</Typography>
+                        <List dense>
+                          {account.income.map((income, idx) => (
+                            <ListItem key={idx}>
+                              <ListItemText primary={income} />
+                            </ListItem>
+                          ))}
+                        </List>
+                      </Box>
+                    )}
 
-                   {account.linkedLoans && (
-                     <Box sx={{ mt: 2 }}>
-                       <Typography variant="subtitle2">Préstamos vinculados:</Typography>
-                       <List dense>
-                         {account.linkedLoans.map((loan, idx) => (
-                           <ListItem key={idx}>
-                             <ListItemText primary={loan} />
-                           </ListItem>
-                         ))}
-                       </List>
-                     </Box>
-                   )}
+                    {account.linkedLoans && (
+                      <Box sx={{ mt: 2 }}>
+                        <Typography variant="subtitle2">Préstamos vinculados:</Typography>
+                        <List dense>
+                          {account.linkedLoans.map((loan, idx) => (
+                            <ListItem key={idx}>
+                              <ListItemText primary={loan} />
+                            </ListItem>
+                          ))}
+                        </List>
+                      </Box>
+                    )}
 
-                   {account.backup && (
-                     <Typography color="textSecondary" sx={{ mt: 2 }}>
-                       Tarjeta de respaldo
-                     </Typography>
-                   )}
-                 </Box>
-               </CardContent>
-             </Card>
-           </Grid>
-         ))}
-       </Grid>
-     </TabPanel>
+                    {account.backup && (
+                      <Typography color="textSecondary" sx={{ mt: 2 }}>
+                        Tarjeta de respaldo
+                      </Typography>
+                    )}
+                  </Box>
+                </CardContent>
+              </Card>
+            </Grid>
+          ))}
+        </Grid>
+      </TabPanel>
           
       <TabPanel value={value} index={4}>
         <FileUploader />
       </TabPanel>
-   </Box>
- );
+    </Box>
+  );
 }
