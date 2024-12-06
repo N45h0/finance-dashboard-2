@@ -1,80 +1,68 @@
+import _ from 'lodash';
 import loans from '../data/loans';
 import services from '../data/services';
 
 const calculateLoans = {
   getTotalCapital: () => {
-    return loans.reduce((total, loan) => total + loan.capital, 0);
+    return _.sumBy(loans, 'capital');
   },
 
   getTotalPaid: () => {
-    return loans.reduce((total, loan) => 
-      total + (loan.paidInstallments * loan.amount), 0);
+    return _.sumBy(loans, loan => loan.paidInstallments * loan.amount);
   },
 
   getRemainingBalance: () => {
-    return loans.reduce((total, loan) => 
-      total + (loan.capital - (loan.paidInstallments * loan.amount)), 0);
+    return _.sumBy(loans, loan => loan.currentBalance);
   },
 
   getProgress: (loan) => {
+    if (!loan?.installments) return 0;
     return (loan.paidInstallments / loan.installments) * 100;
   },
 
   getMonthlyPayments: () => {
-    return loans.reduce((total, loan) => total + loan.amount, 0);
+    return _.sumBy(loans, 'amount');
   },
 
   getOverdueLoans: () => {
     const today = new Date();
-    return loans.filter(loan => {
-      const nextPayment = new Date(loan.nextPaymentDate);
-      return nextPayment < today;
+    return _.filter(loans, loan => {
+      if (!loan.nextPaymentDate) return loan.isOverdue;
+      return new Date(loan.nextPaymentDate) < today;
     });
   },
 
   getLoansByOwner: () => {
-    return loans.reduce((acc, loan) => {
-      if (!acc[loan.owner]) {
-        acc[loan.owner] = {
-          total: 0,
-          paid: 0,
-          remaining: 0
-        };
-      }
-      acc[loan.owner].total += loan.capital;
-      acc[loan.owner].paid += (loan.paidInstallments * loan.amount);
-      acc[loan.owner].remaining += (loan.capital - (loan.paidInstallments * loan.amount));
-      return acc;
-    }, {});
+    return _.groupBy(loans, 'owner');
   }
 };
 
- const calculateServices = {
+const calculateServices = {
   getMonthlyTotal: () => {
-    let total = 0;
-    services.forEach(category => {
-      category.items.forEach(service => {
-        if (service.billingCycle === 'monthly') {
-          total += service.price.uyuEquivalent;
-        } else if (service.billingCycle === 'annual') {
-          total += service.price.uyuEquivalent / 12;
-        }
-      });
-    });
-    return total;
+    return _.sumBy(services, category => 
+      _.sumBy(category.items, service => {
+        const amount = service.price.uyuEquivalent;
+        return service.billingCycle === 'monthly' ? amount : amount / 12;
+      })
+    );
   },
 
   getUpcomingPayments: () => {
     const today = new Date();
-    const upcoming = [];
-    services.forEach(category => {
-      category.items.forEach(service => {
+    const payments = [];
+    
+    _.forEach(services, category => {
+      _.forEach(category.items, service => {
         if (service.billingDay) {
-          const nextPayment = new Date(today.getFullYear(), today.getMonth(), service.billingDay);
+          const nextPayment = new Date(
+            today.getFullYear(),
+            today.getMonth(),
+            service.billingDay
+          );
           if (nextPayment < today) {
             nextPayment.setMonth(nextPayment.getMonth() + 1);
           }
-          upcoming.push({
+          payments.push({
             service: service.name,
             date: nextPayment,
             amount: service.price.uyuEquivalent
@@ -82,19 +70,23 @@ const calculateLoans = {
         }
       });
     });
-    return upcoming.sort((a, b) => a.date - b.date);
+    
+    return _.sortBy(payments, 'date');
   },
 
   getContractStatus: () => {
-    return services.map(category => 
-      category.items
-        .filter(service => service.contract)
+    return _.flatMap(services, category =>
+      _.chain(category.items)
+        .filter('contract')
         .map(service => ({
           name: service.name,
           progress: service.contract.progress,
-          daysUntilRenewal: Math.floor((new Date(service.contract.renewalDate) - new Date()) / (1000 * 60 * 60 * 24))
+          daysUntilRenewal: Math.floor(
+            (new Date(service.contract.renewalDate) - new Date()) / (1000 * 60 * 60 * 24)
+          )
         }))
-    ).flat();
+        .value()
+    );
   }
 };
 
