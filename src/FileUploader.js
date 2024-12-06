@@ -38,11 +38,11 @@ const FileUploader = () => {
   // Procesar imágenes con OCR
   const processImage = async (file, fileName) => {
     try {
-      // Inicializar worker con configuración específica para Vercel
+      // Inicializar worker con CDNs
       const worker = await createWorker({
-        workerPath: '/tesseract/worker.min.js',
-        langPath: '/tesseract/lang-data',
-        corePath: '/tesseract/tesseract-core.wasm.js',
+        workerPath: 'https://cdn.jsdelivr.net/npm/tesseract.js@2.1.5/dist/worker.min.js',
+        langPath: 'https://raw.githubusercontent.com/naptha/tessdata/gh-pages/4.0.0_best',
+        corePath: 'https://cdn.jsdelivr.net/npm/tesseract.js-core@2.1.4/tesseract-core.wasm.js',
         logger: (info) => {
           if (info.status === 'recognizing text') {
             setProgressMap((prev) => ({
@@ -188,7 +188,7 @@ const FileUploader = () => {
         <Button
           variant="contained"
           color="primary"
-          startIcon={isProcessing ? <CircularProgress size={20} /> : <Upload />}
+          startIcon={isProcessing ? <CircularProgress size={20} color="inherit" /> : <Upload />}
           onClick={handleUpload}
           disabled={isProcessing || selectedFiles.length === 0}
         >
@@ -275,7 +275,17 @@ const FileUploader = () => {
         </Box>
       )}
 
-      <ToastContainer position="bottom-right" />
+      <ToastContainer 
+        position="bottom-right"
+        autoClose={5000}
+        hideProgressBar={false}
+        newestOnTop
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+      />
     </Box>
   );
 };
