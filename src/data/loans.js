@@ -8,15 +8,18 @@ const loans = [
     amount: 549.02,
     paidInstallments: 1,
     interestRate: 0,
+    status: "active",
     paymentHistory: [
       { 
         date: "2024-02-01",
         amount: 549.02,
-        status: "paid"
+        status: "paid",
+        method: "manual_6039"
       }
     ],
-    currentBalance: 4392.17, // capital - pagos realizados
-    nextPaymentDate: "2024-03-01"
+    currentBalance: 4392.17,
+    nextPaymentDate: "2024-03-01",
+    account: "6039"
   },
   {
     id: 2,
@@ -31,8 +34,8 @@ const loans = [
     moratory: 43.74,
     cancellationFee: 732.00,
     account: "2477",
-    currentBalance: 12000.00, // capital - pagos realizados
-    nextPaymentDate: "2024-01-01" // Asumido como ejemplo
+    currentBalance: 12000.00,
+    nextPaymentDate: "2024-01-01"
   },
   {
     id: 3,
@@ -57,7 +60,7 @@ const loans = [
     ],
     moratory: 51.35,
     ceipRetention: true,
-    currentBalance: 16167.22, // capital - pagos realizados
+    currentBalance: 16167.22,
     nextPaymentDate: "2024-04-01"
   },
   {
@@ -72,8 +75,8 @@ const loans = [
     paymentHistory: [],
     moratory: 43.74,
     ceipRetention: true,
-    currentBalance: 10000.00, // capital - pagos realizados
-    nextPaymentDate: "2024-01-01" // Asumido como ejemplo
+    currentBalance: 10000.00,
+    nextPaymentDate: "2024-01-01"
   },
   {
     id: 5,
@@ -87,8 +90,8 @@ const loans = [
     paymentHistory: [],
     moratory: 43.74,
     isOverdue: true,
-    currentBalance: 4831.57, // capital - pagos realizados (incluye intereses)
-    nextPaymentDate: null // Asumido como sin fecha debido al estado overdue
+    currentBalance: 4831.57,
+    nextPaymentDate: null
   }
 ];
 
