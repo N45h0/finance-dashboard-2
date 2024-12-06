@@ -3,8 +3,6 @@ import { Box, Card, CardContent, Typography, Tabs, Tab, Alert, AlertTitle, Linea
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie } from 'recharts';
 import { CreditCard, Calendar } from 'lucide-react';
 import FileUploader from './FileUploader';
-import { ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
 
 // Importar datos
 import loans from './data/loans';
