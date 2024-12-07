@@ -61,7 +61,26 @@ const getActiveOverdueLoans = (loans) => {
   const totalPaid = loans.reduce((acc, loan) => acc + (loan.capital * (loan.paidInstallments/loan.installments)), 0);
   const totalRemaining = totalLoans - totalPaid;
   const overallProgress = (totalPaid / totalLoans) * 100;
+const overdueLoans = getActiveOverdueLoans(loans);
 
+  return (
+    <Box sx={{ maxWidth: 1200, margin: 'auto', p: 3 }}>
+      <Typography variant="h4" gutterBottom>
+        Dashboard Financiero Personal
+      </Typography>
+
+      {/* Reemplaza la alerta fija del adelanto de sueldo por esta lógica */}
+      {overdueLoans.length > 0 && (
+        <Alert severity="error" sx={{ mb: 3 }}>
+          <AlertTitle>Préstamos Vencidos</AlertTitle>
+          {overdueLoans.map(loan => (
+            <Typography key={loan.id}>
+              {loan.name} - {formatters.currency(loan.currentBalance)} - 
+              Vencimiento: {formatters.date(loan.nextPaymentDate)}
+            </Typography>
+          ))}
+        </Alert>
+      )}
   return (
     <Box sx={{ maxWidth: 1200, margin: 'auto', p: 3 }}>
       <Typography variant="h4" gutterBottom>
