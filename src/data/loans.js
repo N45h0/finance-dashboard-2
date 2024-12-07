@@ -44,7 +44,7 @@ const loans = [
     capital: 20000.00,
     installments: 12,
     amount: 1916.39,
-    paidInstallments: 2,
+    paidInstallments: 3,
     interestRate: 23.00,
     paymentHistory: [
       { 
@@ -90,7 +90,7 @@ const loans = [
     capital: 4800.00,
     installments: 1,
     amount: 4831.57,
-    paidInstallments: 0,
+    paidInstallments: 1,
     interestRate: 0,
     paymentHistory: [
       { 
