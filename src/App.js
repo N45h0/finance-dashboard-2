@@ -44,7 +44,19 @@ export default function Dashboard() {
         severity: 'warning'
       }))
   ).flat();
-
+  
+const getActiveOverdueLoans = (loans) => {
+  const today = new Date();
+  return loans.filter(loan => {
+    return (
+      loan.nextPaymentDate && // Verifica que haya próxima fecha de pago
+      loan.paidInstallments < loan.installments && // Préstamo no pagado completamente
+      loan.currentBalance > 0 && // Tiene saldo pendiente
+      new Date(loan.nextPaymentDate) < today // Está vencido
+    );
+  });
+};
+  
   const totalLoans = loans.reduce((acc, loan) => acc + loan.capital, 0);
   const totalPaid = loans.reduce((acc, loan) => acc + (loan.capital * (loan.paidInstallments/loan.installments)), 0);
   const totalRemaining = totalLoans - totalPaid;
@@ -56,9 +68,6 @@ export default function Dashboard() {
         Dashboard Financiero Personal
       </Typography>
 
-      /*<Alert severity="error" sx={{ mb: 3 }}>
-        Adelanto de sueldo vencido: {formatters.currency(4831.57)}
-      </Alert>*/
 
       {serviceAlerts.map((alert, index) => (
         <Alert key={index} severity={alert.severity} sx={{ mb: 2 }}>
