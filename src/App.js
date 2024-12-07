@@ -81,12 +81,6 @@ const overdueLoans = getActiveOverdueLoans(loans);
           ))}
         </Alert>
       )}
-  return (
-    <Box sx={{ maxWidth: 1200, margin: 'auto', p: 3 }}>
-      <Typography variant="h4" gutterBottom>
-        Dashboard Financiero Personal
-      </Typography>
-
 
       {serviceAlerts.map((alert, index) => (
         <Alert key={index} severity={alert.severity} sx={{ mb: 2 }}>
