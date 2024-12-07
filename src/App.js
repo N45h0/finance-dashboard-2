@@ -108,8 +108,7 @@ export default function Dashboard() {
             </Button>
           }
         >
-          <AlertTitle>Prueba Gratuita por Vencer</AlertTitle></antArtifact>
-           </Alert>
+          <AlertTitle>Prueba Gratuita por Vencer</AlertTitle></Alert></antArtifact>
 
   const handleChange = (event, newValue) => {
     setValue(newValue);
