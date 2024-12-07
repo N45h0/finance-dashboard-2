@@ -11,14 +11,14 @@ const loans = [
     status: "active",
     paymentHistory: [
       { 
-        date: "2024-02-01",
+        date: "2024-11-22",
         amount: 549.02,
         status: "paid",
         method: "manual_6039"
       }
     ],
     currentBalance: 4392.17,
-    nextPaymentDate: "2024-03-01",
+    nextPaymentDate: "2024-12-22",
     account: "6039"
   },
   {
@@ -35,7 +35,7 @@ const loans = [
     cancellationFee: 732.00,
     account: "2477",
     currentBalance: 12000.00,
-    nextPaymentDate: "2024-01-01"
+    nextPaymentDate: "2025-01-01"
   },
   {
     id: 3,
