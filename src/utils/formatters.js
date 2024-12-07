@@ -20,16 +20,24 @@ const formatters = {
 
  paymentMethod: (method) => {
    const methods = {
-     'debit_6039': 'Débito 6039',
-     'debit_2477': 'Débito 2477',
-     'manual_6039': 'Manual 6039',
+     'debit_6039': 'Brou Débito 6039',
+     'debit_2477': 'Visa Santander Débito 2477',
+     'manual_6039': 'Brou Débito Manual 6039',
+     'debit_3879': 'Prex Mastercard UY',
      'cash': 'Efectivo'
    };
    return methods[method] || method;
  },
 
  billingCycle: (cycle) => {
-   return cycle === 'monthly' ? 'Mensual' : 'Anual';
+   switch (cycle) {
+     case 'monthly':
+       return 'Mensual';
+     case 'annual':
+       return 'Anual';
+     default:
+       return 'Ciclo no reconocido';
+   }
  }
 };
 
