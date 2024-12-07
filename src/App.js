@@ -34,7 +34,9 @@ import FileUploader from './FileUploader';
 import { calculateLoans, calculateServices } from './utils/calculations';
 import PaymentHistory from './components/PaymentHistory';
 import formatters from './utils/formatters';
-
+import loans from './data/loans';
+import services from './data/services';
+import accounts from './data/accounts';
 
 function TabPanel(props) {
   const { children, value, index, ...other } = props;
@@ -49,6 +51,7 @@ export default function Dashboard() {
   const [value, setValue] = useState(0);
   const [pendingPayments, setPendingPayments] = useState([]);
   const [trialAlerts, setTrialAlerts] = useState([]);
+  
   useEffect(() => {
     // Verificar pagos pendientes y trials
     const payments = calculateServices.getUpcomingPayments();
@@ -65,6 +68,27 @@ export default function Dashboard() {
   const monthlyPayments = calculateLoans.getMonthlyPayments();
   const overdueLoans = calculateLoans.getOverdueLoans();
   const monthlyTotal = calculateServices.getMonthlyTotal();
+  const upcomingPayments = calculateServices.getUpcomingPayments();
+  const contractStatus = calculateServices.getContractStatus();
+
+  const totalLoans = loans.reduce((acc, loan) => acc + loan.capital, 0);
+  const totalPaid = loans.reduce((acc, loan) => acc + (loan.capital * (loan.paidInstallments/loan.installments)), 0);
+  const totalRemaining = totalLoans - totalPaid;
+  const overallProgress = (totalPaid / totalLoans) * 100;
+
+  const serviceAlerts = services.map(category => 
+    category.items
+      .filter(service => {
+        const today = new Date();
+        const renewalDate = new Date(service.contract?.renewalDate);
+        return renewalDate && (renewalDate - today) / (1000 * 60 * 60 * 24) <= 30;
+      })
+      .map(service => ({
+        type: 'renewal',
+        message: `${service.name} se renovará el ${formatters.date(service.contract.renewalDate)}`,
+        severity: 'warning'
+      }))
+  ).flat();
 
   return (
     <Box sx={{ maxWidth: 1200, margin: 'auto', p: 3 }}>
@@ -100,7 +124,6 @@ export default function Dashboard() {
               color="inherit" 
               size="small"
               onClick={() => {
-                // Aquí puedes agregar la lógica para gestionar la suscripción
                 console.log('Gestionar suscripción:', trial);
               }}
             >
@@ -108,41 +131,15 @@ export default function Dashboard() {
             </Button>
           }
         >
-          <AlertTitle>Prueba Gratuita por Vencer</AlertTitle></antArtifact>
+          <AlertTitle>Prueba Gratuita por Vencer</AlertTitle>
+          {trial.name} vence mañana. Método de pago actual: {trial.paymentMethod}
+          <Typography variant="body2">
+            Precio después del período de prueba: {formatters.currency(trial.price.uyuEquivalent)}
+          </Typography>
+        </Alert>
+      ))}
 
-  const handleChange = (event, newValue) => {
-    setValue(newValue);
-  };
-
-  const serviceAlerts = services.map(category => 
-    category.items
-      .filter(service => {
-        const today = new Date();
-        const renewalDate = new Date(service.contract?.renewalDate);
-        return renewalDate && (renewalDate - today) / (1000 * 60 * 60 * 24) <= 30;
-      })
-      .map(service => ({
-        type: 'renewal',
-        message: `${service.name} se renovará el ${formatters.date(service.contract.renewalDate)}`,
-        severity: 'warning'
-      }))
-  ).flat();
-
-  const totalLoans = loans.reduce((acc, loan) => acc + loan.capital, 0);
-  const totalPaid = loans.reduce((acc, loan) => acc + (loan.capital * (loan.paidInstallments/loan.installments)), 0);
-  const totalRemaining = totalLoans - totalPaid;
-  const overallProgress = (totalPaid / totalLoans) * 100;
-
-  return (
-    <Box sx={{ maxWidth: 1200, margin: 'auto', p: 3 }}>
-      <Typography variant="h4" gutterBottom>
-        Dashboard Financiero Personal
-      </Typography>
-
-      <Alert severity="error" sx={{ mb: 3 }}>
-        Adelanto de sueldo vencido: {formatters.currency(4831.57)}
-      </Alert>
-
+      {/* Alertas de servicios */}
       {serviceAlerts.map((alert, index) => (
         <Alert key={index} severity={alert.severity} sx={{ mb: 2 }}>
           {alert.message}
@@ -156,7 +153,7 @@ export default function Dashboard() {
         <Tab label="Cuentas" />
         <Tab label="Cargar Archivos" />
       </Tabs>
-
+        
       <TabPanel value={value} index={0}>
         <Card sx={{ mb: 3 }}>
           <CardContent>
