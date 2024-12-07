@@ -108,8 +108,9 @@ export default function Dashboard() {
             </Button>
           }
         >
-          <AlertTitle>Prueba Gratuita por Vencer</AlertTitle></Alert>
-
+          <AlertTitle>Prueba Gratuita por Vencer</AlertTitle>
+          </Alert>
+))}
   const handleChange = (event, newValue) => {
     setValue(newValue);
   };
