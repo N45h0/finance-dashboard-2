@@ -1,101 +1,16 @@
-import React, { useState, useEffect } from 'react';
-import { 
-  Box, 
-  Card, 
-  CardContent, 
-  Typography, 
-  Tabs, 
-  Tab, 
-  Alert, 
-  AlertTitle, 
-  LinearProgress, 
-  Grid, 
-  List, 
-  ListItem, 
-  ListItemIcon, 
-  ListItemText, 
-  Divider,
-  Button
-} from '@mui/material';
-import { 
-  LineChart, 
-  Line, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
-  Legend, 
-  ResponsiveContainer, 
-  PieChart, 
-  Pie 
-} from 'recharts';
-import { CreditCard, Calendar, AlertTriangle, Bell } from 'lucide-react';
+import React, { useState } from 'react';
+import { Box, Card, CardContent, Typography, Tabs, Tab, Alert, AlertTitle, LinearProgress, Grid, List, ListItem, ListItemIcon, ListItemText, Divider } from '@mui/material';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie } from 'recharts';
+import { CreditCard, Calendar } from 'lucide-react';
 import FileUploader from './FileUploader';
+
+// Importar datos
+import loans from './data/loans';
+import services from './data/services';
+import accounts from './data/accounts';
 import { calculateLoans, calculateServices } from './utils/calculations';
 import PaymentHistory from './components/PaymentHistory';
 import formatters from './utils/formatters';
-
-// Datos mock para las variables que faltaban
-const services = [
-  {
-    items: [
-      {
-        name: "Netflix",
-        price: { amount: 15, currency: "USD", uyuEquivalent: 600 },
-        billingCycle: 'monthly',
-        contract: { progress: 75, renewalDate: '2024-12-31' }
-      },
-      // Agrega más servicios según necesites
-    ]
-  }
-];
-
-const loans = [
-  {
-    id: 1,
-    name: "Préstamo Personal",
-    owner: "LAFIO",
-    capital: 100000,
-    amount: 5000,
-    interestRate: 15,
-    moratory: 5,
-    paidInstallments: 6,
-    installments: 12,
-    nextPaymentDate: '2024-12-15'
-  },
-  // Agrega más préstamos según necesites
-];
-
-const upcomingPayments = [
-  {
-    service: "Netflix",
-    date: '2024-12-15',
-    amount: 600
-  },
-  // Agrega más pagos según necesites
-];
-
-const contractStatus = [
-  {
-    name: "Netflix",
-    progress: 75,
-    daysUntilRenewal: 15
-  },
-  // Agrega más contratos según necesites
-];
-
-const accounts = [
-  {
-    id: "6039",
-    name: "Cuenta Principal",
-    type: "Débito",
-    expiry: "12/25",
-    income: ["Sueldo", "Freelance"],
-    linkedLoans: ["Préstamo Personal"],
-    backup: false
-  },
-  // Agrega más cuentas según necesites
-];
 
 function TabPanel(props) {
   const { children, value, index, ...other } = props;
@@ -108,25 +23,13 @@ function TabPanel(props) {
 
 export default function Dashboard() {
   const [value, setValue] = useState(0);
-  const [pendingPayments, setPendingPayments] = useState([]);
-  const [trialAlerts, setTrialAlerts] = useState([]);
-
-  useEffect(() => {
-    // Verificar pagos pendientes y trials
-    const payments = calculateServices.getUpcomingPayments();
-    const trials = calculateServices.getContractStatus();
-    
-    setPendingPayments(payments.filter(p => p.requiresProof));
-    setTrialAlerts(trials);
-  }, []);
+  const monthlyTotal = calculateServices.getMonthlyTotal();
+  const upcomingPayments = calculateServices.getUpcomingPayments();
+  const contractStatus = calculateServices.getContractStatus();
 
   const handleChange = (event, newValue) => {
     setValue(newValue);
   };
-
-  const monthlyPayments = calculateLoans.getMonthlyPayments();
-  const overdueLoans = calculateLoans.getOverdueLoans();
-  const monthlyTotal = calculateServices.getMonthlyTotal();
 
   const serviceAlerts = services.map(category => 
     category.items
@@ -153,44 +56,9 @@ export default function Dashboard() {
         Dashboard Financiero Personal
       </Typography>
 
-      {overdueLoans.length > 0 && (
-        <Alert severity="error" sx={{ mb: 3 }}>
-          <AlertTitle>Préstamos Vencidos</AlertTitle>
-          {overdueLoans.map(loan => (
-            <Typography key={loan.id}>
-              {loan.name} - Próximo vencimiento: {formatters.date(loan.nextPaymentDate)}
-            </Typography>
-          ))}
-        </Alert>
-      )}
-
-      {/* Alerta de pagos mensuales */}
-      <Alert severity="info" sx={{ mb: 3 }}>
-        {monthlyPayments.message}
+      <Alert severity="error" sx={{ mb: 3 }}>
+        Adelanto de sueldo vencido: {formatters.currency(4831.57)}
       </Alert>
-
-      {/* Alertas de pruebas gratuitas */}
-      {trialAlerts.map((trial, index) => (
-        <Alert 
-          key={index} 
-          severity="warning" 
-          sx={{ mb: 2 }}
-          action={
-            <Button 
-              color="inherit" 
-              size="small"
-              onClick={() => {
-                console.log('Gestionar suscripción:', trial);
-              }}
-            >
-              Gestionar
-            </Button>
-          }
-        >
-          <AlertTitle>Prueba Gratuita por Vencer</AlertTitle>
-          {trial.message}
-        </Alert>
-      ))}
 
       {serviceAlerts.map((alert, index) => (
         <Alert key={index} severity={alert.severity} sx={{ mb: 2 }}>
@@ -389,6 +257,19 @@ export default function Dashboard() {
               </Card>
             </Grid>
           ))}
+
+          {calculateLoans.getOverdueLoans().length > 0 && (
+            <Grid item xs={12}>
+              <Alert severity="error">
+                <AlertTitle>Préstamos Vencidos</AlertTitle>
+                {calculateLoans.getOverdueLoans().map(loan => (
+                  <Typography key={loan.id}>
+                    {loan.name} - Próximo vencimiento: {formatters.date(loan.nextPaymentDate)}
+                  </Typography>
+                ))}
+              </Alert>
+            </Grid>
+          )}
         </Grid>
       </TabPanel>
 
