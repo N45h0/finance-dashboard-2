@@ -1,8 +1,3 @@
-const paymentMethods = {
-  debit_6039: "Brou Débito 6039",
-  debit_2477: "Visa Santander Débito",
-  debit_3879: "Prex Mastercard UY"
-};
 const services = [
  {
    category: "Digitales",
@@ -27,8 +22,7 @@ const services = [
            currency: "USD",
            uyuAmount: 541.72,
            status: "paid",
-           method: "debit_6039",
-           cardName: paymentMethods["debit_6039"]
+           method: "debit_6039"
          }
        ]
      },
@@ -50,24 +44,21 @@ const services = [
            amount: 20.00,
            currency: "USD",
            status: "pending",
-           method: "debit_2477",
-           cardName: paymentMethods["debit_2477"]
+           method: "debit_2477"
          },
          {
            date: "2024-10-10",
            amount: 20.00,
            currency: "USD",
            status: "paid",
-           method: "debit_2477",
-           cardName: paymentMethods["debit_2477"]
+           method: "debit_2477"
          },
          {
            date: "2024-11-10",
            amount: 20.00,
            currency: "USD",
            status: "paid",
-           method: "debit_2477",
-           cardName: paymentMethods["debit_2477"]
+           method: "debit_2477"
          },
        ]
      },
@@ -90,8 +81,7 @@ const services = [
            currency: "USD",
            uyuAmount: 900,
            status: "paid",
-           method: "debit_6039",
-           cardName: paymentMethods["debit_6039"]
+           method: "debit_6039"
          }
        ]
      },
@@ -121,8 +111,7 @@ const services = [
            currency: "USD",
            uyuAmount: 887.56,
            status: "paid",
-           method: "debit_6039",
-           cardName: paymentMethods["debit_6039"]
+           method: "debit_6039"
          }
        ]
      },
