@@ -1,7 +1,7 @@
 const accounts = [
  {
    id: "6039",
-   name: "Cuenta Principal",
+   name: "Brou Débito 6039",
    type: "Visa débito",
    expiry: "03/2029",
    income: ["Pagos Expande Digital", "Ex sueldo Elared"],
@@ -15,7 +15,7 @@ const accounts = [
  },
  {
    id: "2477",
-   name: "Cuenta BPS",
+   name: "Visa Santander Débito",
    type: "Visa débito",
    income: ["Pasividades BPS"],
    services: ["ChatGPT Plus"],
@@ -23,7 +23,7 @@ const accounts = [
  },
  {
    id: "3879",
-   name: "MasterCard Prepago",
+   name: "Prex Mastercard UY",
    type: "Prepago",
    backup: true
  }
