@@ -1,3 +1,8 @@
+const paymentMethods = {
+  debit_6039: "Brou Débito 6039",
+  debit_2477: "Visa Santander Débito",
+  debit_3879: "Prex Mastercard UY"
+};
 const services = [
  {
    category: "Digitales",
@@ -22,7 +27,8 @@ const services = [
            currency: "USD",
            uyuAmount: 541.72,
            status: "paid",
-           method: "debit_6039"
+           method: "debit_6039",
+           cardName: paymentMethods["debit_6039"]
          }
        ]
      },
@@ -40,33 +46,29 @@ const services = [
        contract: null,
        paymentHistory: [
          {
-           date: "2024-12-10",
+           date: "2024-09-10",
            amount: 20.00,
            currency: "USD",
            status: "pending",
-           method: "debit_2477"
-         },
-         {
-           date: "2024-11-10",
-           amount: 20.00,
-           currency: "USD",
-           status: "paid",
-           method: "debit_2477"
+           method: "debit_2477",
+           cardName: paymentMethods["debit_2477"]
          },
          {
            date: "2024-10-10",
            amount: 20.00,
            currency: "USD",
            status: "paid",
-           method: "debit_2477"
+           method: "debit_2477",
+           cardName: paymentMethods["debit_2477"]
          },
          {
-           date: "2024-09-10",
+           date: "2024-11-10",
            amount: 20.00,
            currency: "USD",
            status: "paid",
-           method: "debit_2477"
-         }
+           method: "debit_2477",
+           cardName: paymentMethods["debit_2477"]
+         },
        ]
      },
      {
@@ -88,7 +90,8 @@ const services = [
            currency: "USD",
            uyuAmount: 900,
            status: "paid",
-           method: "debit_6039"
+           method: "debit_6039",
+           cardName: paymentMethods["debit_6039"]
          }
        ]
      },
@@ -102,23 +105,24 @@ const services = [
        },
        billingCycle: "annual",
        paymentMethod: "debit_6039",
-       billingDay: 2,
+       billingDay: 1,
        contract: {
-         startDate: "2024-12-02",
+         startDate: "2024-12-01",
          renewalDate: "2025-12-01",
          cancellationDate: null,
          duration: "12 months",
-         progress: 0,
+         progress: 1,
          isFixed: true
        },
        paymentHistory: [
          {
-           date: "2024-12-02",
+           date: "2024-12-01",
            amount: 20.00,
            currency: "USD",
            uyuAmount: 887.56,
            status: "paid",
-           method: "debit_6039"
+           method: "debit_6039",
+           cardName: paymentMethods["debit_6039"]
          }
        ]
      },
@@ -131,25 +135,25 @@ const services = [
          uyuEquivalent: 520
        },
        billingCycle: "monthly",
-       paymentMethod: "manual_6039",
+       paymentMethod: "debit_6039",
        billingDay: null,
        contract: {
          startDate: "2024-10-31",
          renewalDate: "2026-10-31",
          cancellationDate: null,
          duration: "24 months",
-         progress: 0,
+         progress: 1,
          isFixed: true,
          details: "Contrato obligatorio de 24 meses"
        },
        paymentHistory: [
          {
            date: "2024-11-22",
-           amount: 742.78,
+           amount: 163.76,
            currency: "UYU",
            status: "paid",
-           method: "manual_6039",
-           details: "Pago parcial plan + refinanciamiento"
+           method: "debit_6039",
+           details: "Pago prorrateo primer mes"
          },
          {
            date: "2024-10-31",
@@ -170,25 +174,25 @@ const services = [
          uyuEquivalent: 549.02
        },
        billingCycle: "monthly",
-       paymentMethod: "manual_6039",
+       paymentMethod: "debit_6039",
        billingDay: null,
        contract: {
          startDate: "2024-10-31",
          renewalDate: "2025-07-31",
          cancellationDate: null,
          duration: "9 months",
-         progress: 0,
+         progress: 1,
          isFixed: true,
          details: "Refinanciamiento en 9 cuotas fijas"
        },
        paymentHistory: [
          {
            date: "2024-11-22",
-           amount: null,
+           amount: 549.02,
            currency: "UYU",
            status: "paid",
-           method: "manual_6039",
-           details: "Incluido en pago parcial plan + refinanciamiento"
+           method: "debit_6039",
+           details: "pago primer mes refinanciamiento"
          },
          {
            date: "2024-10-31",
