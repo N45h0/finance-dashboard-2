@@ -56,9 +56,9 @@ export default function Dashboard() {
         Dashboard Financiero Personal
       </Typography>
 
-      <Alert severity="error" sx={{ mb: 3 }}>
+      /*<Alert severity="error" sx={{ mb: 3 }}>
         Adelanto de sueldo vencido: {formatters.currency(4831.57)}
-      </Alert>
+      </Alert>*/
 
       {serviceAlerts.map((alert, index) => (
         <Alert key={index} severity={alert.severity} sx={{ mb: 2 }}>
