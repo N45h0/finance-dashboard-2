@@ -1,9 +1,25 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { createWorker } from 'tesseract.js';
 import * as pdfjsLib from 'pdfjs-dist';
 import { ToastContainer, toast } from 'react-toastify';
-import { Button, Box, Typography, CircularProgress } from '@mui/material';
-import { Upload, File } from 'lucide-react';
+import { 
+  Button, 
+  Box, 
+  Typography, 
+  CircularProgress, 
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  List,
+  ListItem,
+  ListItemText,
+  ListItemIcon,
+  Chip
+} from '@mui/material';
+import { Upload, File, AlertTriangle, CheckCircle, XCircle } from 'lucide-react';
+import { calculateServices } from '../utils/calculations';
+import formatters from '../utils/formatters';
 import 'react-toastify/dist/ReactToastify.css';
 
 const FileUploader = () => {
@@ -14,6 +30,18 @@ const FileUploader = () => {
   const [previews, setPreviews] = useState([]);
   const [unsupportedFiles, setUnsupportedFiles] = useState([]);
   const [pendingValidation, setPendingValidation] = useState(null);
+  const [showPaymentDialog, setShowPaymentDialog] = useState(false);
+  const [pendingPayments, setPendingPayments] = useState([]);
+
+  // Verificar pagos pendientes
+  const checkPendingPayments = useCallback(() => {
+    const payments = calculateServices.getUpcomingPayments();
+    const pending = payments.filter(payment => payment.requiresProof);
+    setPendingPayments(pending);
+    if (pending.length > 0) {
+      setShowPaymentDialog(true);
+    }
+  }, []);
 
   // Procesar PDF
   const processPDF = async (file) => {
@@ -38,11 +66,7 @@ const FileUploader = () => {
   // Procesar imágenes con OCR
   const processImage = async (file, fileName) => {
     try {
-      // Inicializar worker con CDNs
       const worker = await createWorker({
-        workerPath: 'https://cdn.jsdelivr.net/npm/tesseract.js@2.1.5/dist/worker.min.js',
-        langPath: 'https://raw.githubusercontent.com/naptha/tessdata/gh-pages/4.0.0_best',
-        corePath: 'https://cdn.jsdelivr.net/npm/tesseract.js-core@2.1.4/tesseract-core.wasm.js',
         logger: (info) => {
           if (info.status === 'recognizing text') {
             setProgressMap((prev) => ({
@@ -66,28 +90,25 @@ const FileUploader = () => {
     }
   };
 
-  // Clasificar y validar datos extraídos
-  const classifyAndValidate = (text, fileName) => {
-    try {
-      if (text.includes('UTILIZACIÓN ADELANTO DE SUELDO')) {
-        setPendingValidation({
-          type: 'adelanto_utilizacion',
-          description: 'Utilización de adelanto de sueldo',
-          details: { fileName, content: text },
-        });
-      } else if (text.includes('COBRO DE ADS')) {
-        setPendingValidation({
-          type: 'adelanto_cobro',
-          description: 'Cobro de adelanto de sueldo',
-          details: { fileName, content: text },
-        });
-      } else {
-        toast.error(`No se pudo clasificar el documento: ${fileName}`);
+  // Validar comprobante de pago
+  const validatePaymentProof = (text, payment) => {
+    // Aquí puedes agregar más validaciones específicas según tus necesidades
+    const amount = payment.amount.toString();
+    const serviceName = payment.service.toLowerCase();
+    
+    // Verificar si el texto contiene información relevante del pago
+    const hasAmount = text.toLowerCase().includes(amount);
+    const hasService = text.toLowerCase().includes(serviceName);
+    const hasDateInfo = text.includes(formatters.date(payment.date));
+    
+    return {
+      isValid: hasAmount && (hasService || hasDateInfo),
+      details: {
+        amount: hasAmount,
+        service: hasService,
+        date: hasDateInfo
       }
-    } catch (error) {
-      console.error('Error classifying document:', error);
-      toast.error(`Error al clasificar el documento: ${fileName}`);
-    }
+    };
   };
 
   const handleFileSelect = (event) => {
@@ -110,21 +131,42 @@ const FileUploader = () => {
     try {
       for (const file of selectedFiles) {
         const fileName = file.name;
+        const fileType = file.type;
+        const acceptedTypes = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png'];
 
-        if (['application/pdf', 'image/jpeg', 'image/jpg', 'image/png'].includes(file.type)) {
-          if (['image/jpeg', 'image/jpg', 'image/png'].includes(file.type)) {
+        if (acceptedTypes.includes(fileType)) {
+          // Crear preview para imágenes
+          if (fileType.startsWith('image/')) {
             const url = URL.createObjectURL(file);
             previewUrls.push({ name: fileName, url });
           }
 
           let text;
           try {
-            text = file.type === 'application/pdf'
+            text = fileType === 'application/pdf'
               ? await processPDF(file)
               : await processImage(file, fileName);
-            
-            results.push({ fileName, content: text });
-            classifyAndValidate(text, fileName);
+
+            // Buscar pago pendiente correspondiente
+            const relatedPayment = pendingPayments.find(payment => {
+              const validation = validatePaymentProof(text, payment);
+              return validation.isValid;
+            });
+
+            if (relatedPayment) {
+              const validationResult = validatePaymentProof(text, relatedPayment);
+              results.push({
+                fileName,
+                payment: relatedPayment,
+                validation: validationResult,
+                content: text
+              });
+
+              toast.success(`Comprobante válido para ${relatedPayment.service}`);
+            } else {
+              toast.warning(`No se pudo relacionar el comprobante con ningún pago pendiente: ${fileName}`);
+            }
+
           } catch (error) {
             toast.error(`Error procesando ${fileName}: ${error.message}`);
           }
@@ -135,14 +177,12 @@ const FileUploader = () => {
 
       setPreviews(previewUrls);
       setUnsupportedFiles(unsupported);
+      setUploadedData(prev => [...prev, ...results]);
       
       if (unsupported.length > 0) {
         toast.warning(`Archivos no soportados: ${unsupported.join(', ')}`);
       }
       
-      if (results.length > 0) {
-        toast.success('Archivos procesados correctamente');
-      }
     } catch (error) {
       toast.error(`Error general: ${error.message}`);
     } finally {
@@ -151,16 +191,71 @@ const FileUploader = () => {
     }
   };
 
-  const confirmMovement = (isConfirmed) => {
-    if (!isConfirmed) {
-      toast.info('Movimiento descartado.');
-    } else if (pendingValidation) {
-      const { type, description, details } = pendingValidation;
-      toast.success(`Confirmado: ${description}`);
-      setUploadedData((prev) => [...prev, { ...details, type }]);
-    }
-    setPendingValidation(null);
-  };
+  const PaymentProofDialog = () => (
+    <Dialog 
+      open={showPaymentDialog} 
+      onClose={() => setShowPaymentDialog(false)}
+      maxWidth="md"
+      fullWidth
+    >
+      <DialogTitle>Comprobantes de Pago Pendientes</DialogTitle>
+      <DialogContent>
+        <List>
+          {pendingPayments.map((payment, index) => (
+            <ListItem key={index} divider>
+              <ListItemIcon>
+                {uploadedData.some(data => data.payment === payment) 
+                  ? <CheckCircle color="green" />
+                  : <AlertTriangle color="orange" />
+                }
+              </ListItemIcon>
+              <ListItemText
+                primary={payment.service}
+                secondary={
+                  <>
+                    Vencimiento: {formatters.date(payment.date)}
+                    <br />
+                    Monto: {formatters.currency(payment.amount)}
+                  </>
+                }
+              />
+              <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+                <Chip 
+                  label={payment.category}
+                  size="small"
+                  color="primary"
+                  variant="outlined"
+                />
+                {payment.acceptedFormats.map((format, idx) => (
+                  <Chip
+                    key={idx}
+                    label={format}
+                    size="small"
+                    variant="outlined"
+                  />
+                ))}
+              </Box>
+            </ListItem>
+          ))}
+        </List>
+      </DialogContent>
+      <DialogActions>
+        <Button 
+          onClick={() => setShowPaymentDialog(false)}
+          startIcon={<XCircle />}
+        >
+          Cerrar
+        </Button>
+        <Button
+          variant="contained"
+          onClick={() => document.getElementById('file-input').click()}
+          startIcon={<Upload />}
+        >
+          Subir Comprobantes
+        </Button>
+      </DialogActions>
+    </Dialog>
+  );
 
   return (
     <Box sx={{ p: 2 }}>
@@ -177,6 +272,7 @@ const FileUploader = () => {
         >
           Seleccionar Archivos
           <input
+            id="file-input"
             type="file"
             hidden
             onChange={handleFileSelect}
@@ -194,30 +290,20 @@ const FileUploader = () => {
         >
           {isProcessing ? 'Procesando...' : 'Subir Archivos'}
         </Button>
+
+        <Button
+          variant="outlined"
+          onClick={checkPendingPayments}
+          startIcon={<AlertTriangle />}
+        >
+          Verificar Pagos Pendientes
+        </Button>
       </Box>
 
       {selectedFiles.length > 0 && (
         <Typography variant="body2" sx={{ mb: 2 }}>
           {selectedFiles.length} archivo(s) seleccionado(s)
         </Typography>
-      )}
-
-      {/* Mensajes informativos */}
-      <Typography variant="body2" color="text.secondary">
-        Formatos soportados: PDF, JPG, JPEG, PNG (máximo 10 archivos)
-      </Typography>
-
-      {unsupportedFiles.length > 0 && (
-        <Box sx={{ mt: 2 }}>
-          <Typography variant="subtitle2" color="error">
-            Archivos no soportados:
-          </Typography>
-          <ul>
-            {unsupportedFiles.map((fileName, index) => (
-              <li key={index}>{fileName}</li>
-            ))}
-          </ul>
-        </Box>
       )}
 
       {/* Previsualizaciones */}
@@ -243,37 +329,7 @@ const FileUploader = () => {
         </Box>
       )}
 
-      {/* Validación pendiente */}
-      {pendingValidation && (
-        <Box sx={{ 
-          mt: 2, 
-          p: 2, 
-          border: '1px solid #ccc', 
-          borderRadius: 1,
-          backgroundColor: '#f5f5f5'
-        }}>
-          <Typography variant="subtitle1">¿Confirmar este movimiento?</Typography>
-          <Typography variant="body2" sx={{ mb: 2 }}>
-            Tipo: {pendingValidation.description}
-          </Typography>
-          <Box sx={{ display: 'flex', gap: 1 }}>
-            <Button
-              variant="contained"
-              color="success"
-              onClick={() => confirmMovement(true)}
-            >
-              Confirmar
-            </Button>
-            <Button
-              variant="outlined"
-              color="error"
-              onClick={() => confirmMovement(false)}
-            >
-              Descartar
-            </Button>
-          </Box>
-        </Box>
-      )}
+      <PaymentProofDialog />
 
       <ToastContainer 
         position="bottom-right"
