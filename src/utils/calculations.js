@@ -22,18 +22,35 @@ const calculateLoans = {
   getProgress: (loan) => {
     if (!loan?.installments || !loan?.paidInstallments) return 0;
     const progress = (loan.paidInstallments / loan.installments) * 100;
-    return _.clamp(progress, 0, 100); // Asegura que el progreso esté entre 0 y 100
+    return _.clamp(progress, 0, 100);
   },
 
   getMonthlyPayments: () => {
-    return _.sumBy(loans, 'amount') || 0;
+    const totalMonthlyAmount = _.sumBy(loans, loan => {
+      // Skip if loan is fully paid
+      if (loan.paidInstallments >= loan.installments) return 0;
+      return loan.amount || 0;
+    }) || 0;
+
+    return {
+      amount: totalMonthlyAmount,
+      message: `Tiene que pagar un total de ${new Intl.NumberFormat('es-UY', {
+        style: 'currency',
+        currency: 'UYU'
+      }).format(totalMonthlyAmount)} este mes en préstamos.`
+    };
   },
 
   getOverdueLoans: () => {
     const today = new Date();
     return _.filter(loans, loan => {
+      // Skip if loan is fully paid
+      if (loan.paidInstallments >= loan.installments) return false;
+      
+      // Check for overdue status
       if (!loan.nextPaymentDate && loan.isOverdue) return true;
       if (!loan.nextPaymentDate) return false;
+      
       return new Date(loan.nextPaymentDate) < today;
     });
   },
@@ -61,6 +78,18 @@ const calculateServices = {
         _.sumBy(category.items, service => {
           if (!service?.price?.uyuEquivalent) return 0;
           const amount = service.price.uyuEquivalent;
+          
+          // Handle fixed-term contracts
+          if (service.contract?.duration) {
+            const durationMonths = parseInt(service.contract.duration.split(' ')[0]);
+            if (durationMonths > 0) {
+              return service.billingCycle === 'annual' 
+                ? amount / 12 
+                : amount; // Monthly billing for fixed-term contracts
+            }
+          }
+          
+          // Handle regular billing cycles
           return service.billingCycle === 'monthly' ? amount : amount / 12;
         })
       ) || 0;
@@ -85,17 +114,24 @@ const calculateServices = {
             service.billingDay
           );
           
-          // Si la fecha ya pasó, move al próximo mes
+          // If date has passed, move to next month
           if (nextPayment < today) {
             nextPayment.setMonth(nextPayment.getMonth() + 1);
           }
+          
+          // Check last payment status
+          const lastPayment = _.last(service.paymentHistory);
+          const requiresProof = !lastPayment || 
+            new Date(lastPayment.date) < nextPayment;
           
           payments.push({
             service: service.name || 'Servicio sin nombre',
             date: nextPayment,
             amount: service.price?.uyuEquivalent || 0,
             category: category.category || 'Sin categoría',
-            billingCycle: service.billingCycle || 'monthly'
+            billingCycle: service.billingCycle || 'monthly',
+            requiresProof,
+            acceptedFormats: ['.jpg', '.jpeg', '.png', '.pdf']
           });
         });
       });
@@ -109,29 +145,44 @@ const calculateServices = {
 
   getContractStatus: () => {
     try {
+      const today = new Date();
+      
       return _.flatMap(services, category =>
         _.chain(category.items)
-          .filter(service => service?.contract)
+          .filter(service => {
+            // Check if service has payment method but no active contract
+            return service.paymentMethod && 
+              (!service.contract || !service.contract.startDate) &&
+              (!_.last(service.paymentHistory)?.status === 'paid');
+          })
           .map(service => {
-            const renewalDate = new Date(service.contract.renewalDate);
-            const now = new Date();
-            const daysUntilRenewal = Math.max(0, Math.floor(
-              (renewalDate - now) / (1000 * 60 * 60 * 24)
-            ));
-
+            // Calculate trial end date (assuming standard 14-day trial)
+            const lastPaymentDate = _.last(service.paymentHistory)?.date;
+            if (!lastPaymentDate) return null;
+            
+            const trialEndDate = new Date(lastPaymentDate);
+            trialEndDate.setDate(trialEndDate.getDate() + 14);
+            
+            const daysUntilEnd = Math.floor(
+              (trialEndDate - today) / (1000 * 60 * 60 * 24)
+            );
+            
+            // Only alert if trial ends tomorrow
+            if (daysUntilEnd !== 1) return null;
+            
             return {
               name: service.name || 'Servicio sin nombre',
-              progress: _.clamp(service.contract.progress || 0, 0, 100),
-              daysUntilRenewal,
-              renewalDate: service.contract.renewalDate,
-              category: category.category || 'Sin categoría',
-              isExpiringSoon: daysUntilRenewal <= 30
+              trialEndDate,
+              paymentMethod: service.paymentMethod,
+              price: service.price,
+              category: category.category || 'Sin categoría'
             };
           })
+          .compact() // Remove null values
           .value()
       );
     } catch (error) {
-      console.error('Error getting contract status:', error);
+      console.error('Error getting trial status:', error);
       return [];
     }
   }
