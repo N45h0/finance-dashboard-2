@@ -100,9 +100,9 @@ const loans = [
       }
     ],
     moratory: 43.74,
-    isOverdue: true,
+    ceipRetention: true,
     currentBalance: 4831.57,
-    nextPaymentDate: null
+    nextPaymentDate: "2024-12-02"
   }
 ];
 
