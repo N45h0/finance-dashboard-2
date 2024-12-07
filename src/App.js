@@ -35,6 +35,67 @@ import { calculateLoans, calculateServices } from './utils/calculations';
 import PaymentHistory from './components/PaymentHistory';
 import formatters from './utils/formatters';
 
+// Datos mock para las variables que faltaban
+const services = [
+  {
+    items: [
+      {
+        name: "Netflix",
+        price: { amount: 15, currency: "USD", uyuEquivalent: 600 },
+        billingCycle: 'monthly',
+        contract: { progress: 75, renewalDate: '2024-12-31' }
+      },
+      // Agrega más servicios según necesites
+    ]
+  }
+];
+
+const loans = [
+  {
+    id: 1,
+    name: "Préstamo Personal",
+    owner: "LAFIO",
+    capital: 100000,
+    amount: 5000,
+    interestRate: 15,
+    moratory: 5,
+    paidInstallments: 6,
+    installments: 12,
+    nextPaymentDate: '2024-12-15'
+  },
+  // Agrega más préstamos según necesites
+];
+
+const upcomingPayments = [
+  {
+    service: "Netflix",
+    date: '2024-12-15',
+    amount: 600
+  },
+  // Agrega más pagos según necesites
+];
+
+const contractStatus = [
+  {
+    name: "Netflix",
+    progress: 75,
+    daysUntilRenewal: 15
+  },
+  // Agrega más contratos según necesites
+];
+
+const accounts = [
+  {
+    id: "6039",
+    name: "Cuenta Principal",
+    type: "Débito",
+    expiry: "12/25",
+    income: ["Sueldo", "Freelance"],
+    linkedLoans: ["Préstamo Personal"],
+    backup: false
+  },
+  // Agrega más cuentas según necesites
+];
 
 function TabPanel(props) {
   const { children, value, index, ...other } = props;
@@ -49,6 +110,7 @@ export default function Dashboard() {
   const [value, setValue] = useState(0);
   const [pendingPayments, setPendingPayments] = useState([]);
   const [trialAlerts, setTrialAlerts] = useState([]);
+
   useEffect(() => {
     // Verificar pagos pendientes y trials
     const payments = calculateServices.getUpcomingPayments();
@@ -66,13 +128,31 @@ export default function Dashboard() {
   const overdueLoans = calculateLoans.getOverdueLoans();
   const monthlyTotal = calculateServices.getMonthlyTotal();
 
+  const serviceAlerts = services.map(category => 
+    category.items
+      .filter(service => {
+        const today = new Date();
+        const renewalDate = new Date(service.contract?.renewalDate);
+        return renewalDate && (renewalDate - today) / (1000 * 60 * 60 * 24) <= 30;
+      })
+      .map(service => ({
+        type: 'renewal',
+        message: `${service.name} se renovará el ${formatters.date(service.contract.renewalDate)}`,
+        severity: 'warning'
+      }))
+  ).flat();
+
+  const totalLoans = loans.reduce((acc, loan) => acc + loan.capital, 0);
+  const totalPaid = loans.reduce((acc, loan) => acc + (loan.capital * (loan.paidInstallments/loan.installments)), 0);
+  const totalRemaining = totalLoans - totalPaid;
+  const overallProgress = (totalPaid / totalLoans) * 100;
+
   return (
     <Box sx={{ maxWidth: 1200, margin: 'auto', p: 3 }}>
       <Typography variant="h4" gutterBottom>
         Dashboard Financiero Personal
       </Typography>
 
-      {/* Alertas de préstamos vencidos */}
       {overdueLoans.length > 0 && (
         <Alert severity="error" sx={{ mb: 3 }}>
           <AlertTitle>Préstamos Vencidos</AlertTitle>
@@ -100,7 +180,6 @@ export default function Dashboard() {
               color="inherit" 
               size="small"
               onClick={() => {
-                // Aquí puedes agregar la lógica para gestionar la suscripción
                 console.log('Gestionar suscripción:', trial);
               }}
             >
@@ -109,40 +188,9 @@ export default function Dashboard() {
           }
         >
           <AlertTitle>Prueba Gratuita por Vencer</AlertTitle>
-          </Alert>
-))}
-  const handleChange = (event, newValue) => {
-    setValue(newValue);
-  };
-
-  const serviceAlerts = services.map(category => 
-    category.items
-      .filter(service => {
-        const today = new Date();
-        const renewalDate = new Date(service.contract?.renewalDate);
-        return renewalDate && (renewalDate - today) / (1000 * 60 * 60 * 24) <= 30;
-      })
-      .map(service => ({
-        type: 'renewal',
-        message: `${service.name} se renovará el ${formatters.date(service.contract.renewalDate)}`,
-        severity: 'warning'
-      }))
-  ).flat();
-
-  const totalLoans = loans.reduce((acc, loan) => acc + loan.capital, 0);
-  const totalPaid = loans.reduce((acc, loan) => acc + (loan.capital * (loan.paidInstallments/loan.installments)), 0);
-  const totalRemaining = totalLoans - totalPaid;
-  const overallProgress = (totalPaid / totalLoans) * 100;
-
-  return (
-    <Box sx={{ maxWidth: 1200, margin: 'auto', p: 3 }}>
-      <Typography variant="h4" gutterBottom>
-        Dashboard Financiero Personal
-      </Typography>
-
-      <Alert severity="error" sx={{ mb: 3 }}>
-        Adelanto de sueldo vencido: {formatters.currency(4831.57)}
-      </Alert>
+          {trial.message}
+        </Alert>
+      ))}
 
       {serviceAlerts.map((alert, index) => (
         <Alert key={index} severity={alert.severity} sx={{ mb: 2 }}>
@@ -341,19 +389,6 @@ export default function Dashboard() {
               </Card>
             </Grid>
           ))}
-
-          {calculateLoans.getOverdueLoans().length > 0 && (
-            <Grid item xs={12}>
-              <Alert severity="error">
-                <AlertTitle>Préstamos Vencidos</AlertTitle>
-                {calculateLoans.getOverdueLoans().map(loan => (
-                  <Typography key={loan.id}>
-                    {loan.name} - Próximo vencimiento: {formatters.date(loan.nextPaymentDate)}
-                  </Typography>
-                ))}
-              </Alert>
-            </Grid>
-          )}
         </Grid>
       </TabPanel>
 
@@ -504,4 +539,4 @@ export default function Dashboard() {
       </TabPanel>
     </Box>
   );
-        }
+}
