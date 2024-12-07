@@ -1,16 +1,40 @@
-import React, { useState } from 'react';
-import { Box, Card, CardContent, Typography, Tabs, Tab, Alert, AlertTitle, LinearProgress, Grid, List, ListItem, ListItemIcon, ListItemText, Divider } from '@mui/material';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie } from 'recharts';
-import { CreditCard, Calendar } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { 
+  Box, 
+  Card, 
+  CardContent, 
+  Typography, 
+  Tabs, 
+  Tab, 
+  Alert, 
+  AlertTitle, 
+  LinearProgress, 
+  Grid, 
+  List, 
+  ListItem, 
+  ListItemIcon, 
+  ListItemText, 
+  Divider,
+  Button
+} from '@mui/material';
+import { 
+  LineChart, 
+  Line, 
+  XAxis, 
+  YAxis, 
+  CartesianGrid, 
+  Tooltip, 
+  Legend, 
+  ResponsiveContainer, 
+  PieChart, 
+  Pie 
+} from 'recharts';
+import { CreditCard, Calendar, AlertTriangle, Bell } from 'lucide-react';
 import FileUploader from './FileUploader';
-
-// Importar datos
-import loans from './data/loans';
-import services from './data/services';
-import accounts from './data/accounts';
 import { calculateLoans, calculateServices } from './utils/calculations';
 import PaymentHistory from './components/PaymentHistory';
 import formatters from './utils/formatters';
+
 
 function TabPanel(props) {
   const { children, value, index, ...other } = props;
@@ -23,9 +47,68 @@ function TabPanel(props) {
 
 export default function Dashboard() {
   const [value, setValue] = useState(0);
+  const [pendingPayments, setPendingPayments] = useState([]);
+  const [trialAlerts, setTrialAlerts] = useState([]);
+  useEffect(() => {
+    // Verificar pagos pendientes y trials
+    const payments = calculateServices.getUpcomingPayments();
+    const trials = calculateServices.getContractStatus();
+    
+    setPendingPayments(payments.filter(p => p.requiresProof));
+    setTrialAlerts(trials);
+  }, []);
+
+  const handleChange = (event, newValue) => {
+    setValue(newValue);
+  };
+
+  const monthlyPayments = calculateLoans.getMonthlyPayments();
+  const overdueLoans = calculateLoans.getOverdueLoans();
   const monthlyTotal = calculateServices.getMonthlyTotal();
-  const upcomingPayments = calculateServices.getUpcomingPayments();
-  const contractStatus = calculateServices.getContractStatus();
+
+  return (
+    <Box sx={{ maxWidth: 1200, margin: 'auto', p: 3 }}>
+      <Typography variant="h4" gutterBottom>
+        Dashboard Financiero Personal
+      </Typography>
+
+      {/* Alertas de préstamos vencidos */}
+      {overdueLoans.length > 0 && (
+        <Alert severity="error" sx={{ mb: 3 }}>
+          <AlertTitle>Préstamos Vencidos</AlertTitle>
+          {overdueLoans.map(loan => (
+            <Typography key={loan.id}>
+              {loan.name} - Próximo vencimiento: {formatters.date(loan.nextPaymentDate)}
+            </Typography>
+          ))}
+        </Alert>
+      )}
+
+      {/* Alerta de pagos mensuales */}
+      <Alert severity="info" sx={{ mb: 3 }}>
+        {monthlyPayments.message}
+      </Alert>
+
+      {/* Alertas de pruebas gratuitas */}
+      {trialAlerts.map((trial, index) => (
+        <Alert 
+          key={index} 
+          severity="warning" 
+          sx={{ mb: 2 }}
+          action={
+            <Button 
+              color="inherit" 
+              size="small"
+              onClick={() => {
+                // Aquí puedes agregar la lógica para gestionar la suscripción
+                console.log('Gestionar suscripción:', trial);
+              }}
+            >
+              Gestionar
+            </Button>
+          }
+        >
+          <AlertTitle>Prueba Gratuita por Vencer</AlertTitle></antArtifact>
 
   const handleChange = (event, newValue) => {
     setValue(newValue);
