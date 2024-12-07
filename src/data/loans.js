@@ -102,7 +102,7 @@ const loans = [
     moratory: 43.74,
     ceipRetention: true,
     currentBalance: 4831.57,
-    nextPaymentDate: "2024-12-02"
+    nextPaymentDate: null
   }
 ];
 
