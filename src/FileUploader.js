@@ -4,7 +4,7 @@ import * as pdfjsLib from 'pdfjs-dist';
 import { ToastContainer, toast } from 'react-toastify';
 import { Button, Box, Typography, CircularProgress, Card } from '@mui/material';
 import { Upload, File, AlertCircle } from 'lucide-react';
-import { Alert, AlertTitle } from '@/components/ui/alert';
+import { Alert, AlertTitle } from '@mui/material';
 
 const FileUploader = () => {
   const [worker, setWorker] = useState(null);
