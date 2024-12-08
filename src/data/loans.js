@@ -65,7 +65,7 @@ const loans = [
     ],
     moratory: 51.35,
     ceipRetention: true,
-    currentBalance: 16167.22,
+    currentBalance: 14250.83,
     nextPaymentDate: "2025-01-03"
   },
   {
@@ -101,7 +101,7 @@ const loans = [
     ],
     moratory: 43.74,
     ceipRetention: true,
-    currentBalance: 4831.57,
+    currentBalance: 4831.05,
     nextPaymentDate: null
   }
 ];
