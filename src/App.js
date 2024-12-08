@@ -1,10 +1,37 @@
-import React, { useState } from 'react';
-import { Box, Card, CardContent, Typography, Tabs, Tab, Alert, AlertTitle, LinearProgress, Grid, List, ListItem, ListItemIcon, ListItemText, Divider } from '@mui/material';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie } from 'recharts';
+import React, { useState, useEffect } from 'react';
+import { 
+  Box, 
+  Card, 
+  CardContent, 
+  Typography, 
+  Tabs, 
+  Tab, 
+  Alert, 
+  AlertTitle, 
+  LinearProgress, 
+  Grid, 
+  List, 
+  ListItem, 
+  ListItemIcon, 
+  ListItemText, 
+  Divider 
+} from '@mui/material';
+import { 
+  LineChart, 
+  Line, 
+  XAxis, 
+  YAxis, 
+  CartesianGrid, 
+  Tooltip, 
+  Legend, 
+  ResponsiveContainer, 
+  PieChart, 
+  Pie 
+} from 'recharts';
 import { CreditCard, Calendar } from 'lucide-react';
 import FileUploader from './FileUploader';
 
-// Importar datos
+// Importar datos y utilidades
 import loans from './data/loans';
 import services from './data/services';
 import accounts from './data/accounts';
@@ -12,59 +39,90 @@ import { calculateLoans, calculateServices } from './utils/calculations';
 import PaymentHistory from './components/PaymentHistory';
 import formatters from './utils/formatters';
 
+// Hook personalizado para el tamaño de ventana
+const useWindowSize = () => {
+  const [windowSize, setWindowSize] = useState({
+    width: window.innerWidth,
+    height: window.innerHeight,
+  });
+
+  useEffect(() => {
+    const handleResize = () => {
+      setWindowSize({
+        width: window.innerWidth,
+        height: window.innerHeight,
+      });
+    };
+
+    window.addEventListener('resize', handleResize);
+    handleResize(); // Llamada inicial
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  return windowSize;
+};
+
 function TabPanel(props) {
   const { children, value, index, ...other } = props;
   return (
     <div hidden={value !== index} {...other}>
-      {value === index && <Box sx={{ p: 3 }}>{children}</Box>}
+      {value === index && <Box sx={{ p: { xs: 1, sm: 2, md: 3 } }}>{children}</Box>}
     </div>
   );
 }
 
-export default function Dashboard{
-const useWindowSize = () => {
-    const [windowSize, setWindowSize] = useState({
-      width: window.innerWidth,
-      height: window.innerHeight,
-    });
+export default function Dashboard() {
+  const { width } = useWindowSize();
+  const isMobile = width <= 768;
+  const isTablet = width <= 1024;
 
-    useEffect(() => {
-      const handleResize = () => {
-        setWindowSize({
-          width: window.innerWidth,
-          height: window.innerHeight,
-        });
-      };
-
-      window.addEventListener('resize', handleResize);
-      return () => window.removeEventListener('resize', handleResize);
-    }, []);
-
-    return windowSize;
-  };
+  // Estados
   const [value, setValue] = useState(0);
   const monthlyTotal = calculateServices.getMonthlyTotal();
   const upcomingPayments = calculateServices.getUpcomingPayments();
   const contractStatus = calculateServices.getContractStatus();
-  const { width } = useWindowSize();
-  const isMobile = width <= 768;
-  const isTablet = width <= 1024;
-  const responsiveCardStyles = {
-    width: '100%',
-    maxWidth: isMobile ? '100%' : '1200px',
-    margin: 'auto',
-    p: isMobile ? 1 : 3,
+
+  // Estilos responsivos
+  const responsiveStyles = {
+    container: {
+      width: '100%',
+      maxWidth: isMobile ? '100%' : '1200px',
+      margin: 'auto',
+      p: isMobile ? 1 : 3,
+    },
+    grid: {
+      spacing: { xs: 1, sm: 2, md: 3 },
+    },
+    chart: {
+      height: isMobile ? 200 : 300,
+    },
+    title: {
+      fontSize: isMobile ? '1.5rem' : '2rem',
+      textAlign: isMobile ? 'center' : 'left',
+    },
+    card: {
+      p: { xs: 1, sm: 2 },
+    },
   };
 
-  const responsiveGridStyles = {
-    spacing: isMobile ? 1 : 3,
-  };
-
-  const responsiveChartHeight = isMobile ? 200 : 300;
   const handleChange = (event, newValue) => {
     setValue(newValue);
   };
 
+  // Función para préstamos vencidos activos
+  const getActiveOverdueLoans = (loans) => {
+    const today = new Date();
+    return loans.filter(loan => {
+      return (
+        loan.nextPaymentDate && 
+        loan.paidInstallments < loan.installments && 
+        loan.currentBalance > 0 && 
+        new Date(loan.nextPaymentDate) < today
+      );
+    });
+  };
+
+  // Alertas de servicios
   const serviceAlerts = services.map(category => 
     category.items
       .filter(service => {
@@ -78,52 +136,73 @@ const useWindowSize = () => {
         severity: 'warning'
       }))
   ).flat();
-  
-const getActiveOverdueLoans = (loans) => {
-  const today = new Date();
-  return loans.filter(loan => {
-    return (
-      loan.nextPaymentDate && // Verifica que haya próxima fecha de pago
-      loan.paidInstallments < loan.installments && // Préstamo no pagado completamente
-      loan.currentBalance > 0 && // Tiene saldo pendiente
-      new Date(loan.nextPaymentDate) < today // Está vencido
-    );
-  });
-};
-  
+
+  // Cálculos de préstamos
   const totalLoans = loans.reduce((acc, loan) => acc + loan.capital, 0);
   const totalPaid = loans.reduce((acc, loan) => acc + (loan.capital * (loan.paidInstallments/loan.installments)), 0);
   const totalRemaining = totalLoans - totalPaid;
   const overallProgress = (totalPaid / totalLoans) * 100;
-const overdueLoans = getActiveOverdueLoans(loans);
-  
+  const overdueLoans = getActiveOverdueLoans(loans);
+
   return (
-    <Box sx={responsiveCardStyles}>
-    <Box sx={{ maxWidth: 1200, margin: 'auto', p: 3 }}>
-      <Typography variant="h4" gutterBottom>
+    <Box sx={responsiveStyles.container}>
+      <Typography 
+        variant={isMobile ? "h5" : "h4"} 
+        gutterBottom
+        sx={responsiveStyles.title}
+      >
         Dashboard Financiero Personal
       </Typography>
 
-      {/* Reemplaza la alerta fija del adelanto de sueldo por esta lógica */}
-      {overdueLoans.length > 0 && (
-        <Alert severity="error" sx={{ mb: 3 }}>
-          <AlertTitle>Préstamos Vencidos</AlertTitle>
-          {overdueLoans.map(loan => (
-            <Typography key={loan.id}>
-              {loan.name} - {formatters.currency(loan.currentBalance)} - 
-              Vencimiento: {formatters.date(loan.nextPaymentDate)}
-            </Typography>
-          ))}
-        </Alert>
-      )}
+      {/* Alertas */}
+      <Box sx={{ mb: isMobile ? 2 : 3 }}>
+        {overdueLoans.length > 0 && (
+          <Alert 
+            severity="error" 
+            sx={{ mb: 2, fontSize: isMobile ? '0.875rem' : '1rem' }}
+          >
+            <AlertTitle>Préstamos Vencidos</AlertTitle>
+            {overdueLoans.map(loan => (
+              <Typography 
+                key={loan.id}
+                sx={{ fontSize: isMobile ? '0.875rem' : '1rem' }}
+              >
+                {loan.name} - {formatters.currency(loan.currentBalance)} - 
+                Vencimiento: {formatters.date(loan.nextPaymentDate)}
+              </Typography>
+            ))}
+          </Alert>
+        )}
 
-      {serviceAlerts.map((alert, index) => (
-        <Alert key={index} severity={alert.severity} sx={{ mb: 2 }}>
-          {alert.message}
-        </Alert>
-      ))}
+        {serviceAlerts.map((alert, index) => (
+          <Alert 
+            key={index} 
+            severity={alert.severity} 
+            sx={{ 
+              mb: 2,
+              fontSize: isMobile ? '0.875rem' : '1rem'
+            }}
+          >
+            {alert.message}
+          </Alert>
+        ))}
+      </Box>
 
-      <Tabs value={value} onChange={handleChange}>
+      {/* Tabs */}
+      <Tabs 
+        value={value} 
+        onChange={handleChange}
+        variant={isMobile ? "scrollable" : "standard"}
+        scrollButtons={isMobile ? "auto" : false}
+        allowScrollButtonsMobile
+        sx={{
+          '.MuiTab-root': {
+            fontSize: isMobile ? '0.875rem' : '1rem',
+            minWidth: isMobile ? 'auto' : 90,
+            p: isMobile ? 1 : 2,
+          }
+        }}
+      >
         <Tab label="Resumen" />
         <Tab label="Préstamos" />
         <Tab label="Servicios" />
@@ -131,35 +210,55 @@ const overdueLoans = getActiveOverdueLoans(loans);
         <Tab label="Cargar Archivos" />
       </Tabs>
 
+      {/* Panel de Resumen */}
       <TabPanel value={value} index={0}>
-        <Card sx={{ mb: 3 }}>
-          <CardContent>
-            <Typography variant="h6">Resumen Global de Préstamos</Typography>
-            <Grid container spacing={responsiveGridStyles.spacing}>
+        <Card sx={{ mb: isMobile ? 2 : 3 }}>
+          <CardContent sx={responsiveStyles.card}>
+            <Typography variant={isMobile ? "subtitle1" : "h6"}>
+              Resumen Global de Préstamos
+            </Typography>
+            <Grid container spacing={responsiveStyles.grid.spacing}>
               <Grid item xs={12} sm={4}>
-                <Box sx={{ bgcolor: 'primary.light', p: 2, borderRadius: 2 }}>
+                <Box sx={{ 
+                  bgcolor: 'primary.light', 
+                  p: isMobile ? 1.5 : 2,
+                  borderRadius: 2,
+                  mb: isMobile ? 1 : 0 
+                }}>
                   <Typography variant="body2">Monto Total Préstamos</Typography>
                   <Typography variant="h6">{formatters.currency(totalLoans)}</Typography>
                 </Box>
               </Grid>
-              <Grid container spacing={responsiveGridStyles.spacing}>
               <Grid item xs={12} sm={4}>
-                <Box sx={{ bgcolor: 'success.light', p: 2, borderRadius: 2 }}>
+                <Box sx={{ 
+                  bgcolor: 'success.light', 
+                  p: isMobile ? 1.5 : 2,
+                  borderRadius: 2,
+                  mb: isMobile ? 1 : 0 
+                }}>
                   <Typography variant="body2">Monto Pagado</Typography>
                   <Typography variant="h6">{formatters.currency(totalPaid)}</Typography>
                 </Box>
               </Grid>
-              <Grid container spacing={responsiveGridStyles.spacing}>
               <Grid item xs={12} sm={4}>
-                <Box sx={{ bgcolor: 'warning.light', p: 2, borderRadius: 2 }}>
+                <Box sx={{ 
+                  bgcolor: 'warning.light', 
+                  p: isMobile ? 1.5 : 2,
+                  borderRadius: 2 
+                }}>
                   <Typography variant="body2">Monto Restante</Typography>
                   <Typography variant="h6">{formatters.currency(totalRemaining)}</Typography>
                 </Box>
               </Grid>
             </Grid>
+            
             <Box sx={{ mt: 2 }}>
               <Typography variant="body2">Progreso de Pago Total</Typography>
-              <LinearProgress variant="determinate" value={overallProgress} sx={{ mt: 1 }} />
+              <LinearProgress 
+                variant="determinate" 
+                value={overallProgress} 
+                sx={{ mt: 1 }} 
+              />
               <Typography variant="caption" sx={{ display: 'block', textAlign: 'right' }}>
                 {overallProgress.toFixed(1)}%
               </Typography>
@@ -167,12 +266,16 @@ const overdueLoans = getActiveOverdueLoans(loans);
           </CardContent>
         </Card>
 
-        <Grid container spacing={responsiveGridStyles.spacing}>
-          <Grid item xs={12} md={4}>
+        <Grid container spacing={responsiveStyles.grid.spacing}>
+          <Grid item xs={12} md={isMobile ? 12 : 4}>
             <Card>
-              <CardContent>
-                <Typography variant="h6">Resumen Mensual Total</Typography>
-                <Typography variant="h4" sx={{ mt: 2 }}>{formatters.currency(monthlyTotal)}</Typography>
+              <CardContent sx={responsiveStyles.card}>
+                <Typography variant={isMobile ? "subtitle1" : "h6"}>
+                  Resumen Mensual Total
+                </Typography>
+                <Typography variant={isMobile ? "h5" : "h4"} sx={{ mt: 2 }}>
+                  {formatters.currency(monthlyTotal)}
+                </Typography>
                 <Box sx={{ mt: 2 }}>
                   <Box sx={{ 
                     display: 'flex', 
@@ -196,7 +299,7 @@ const overdueLoans = getActiveOverdueLoans(loans);
                       variant="determinate"
                       value={70}
                       sx={{ 
-                        height: 8,
+                        height: isMobile ? 6 : 8,
                         borderRadius: 4,
                         "& .MuiLinearProgress-bar": {
                           backgroundColor: "rgb(26, 23, 87)"
@@ -208,12 +311,14 @@ const overdueLoans = getActiveOverdueLoans(loans);
               </CardContent>
             </Card>
           </Grid>
-          <Grid container spacing={responsiveGridStyles.spacing}>
-          <Grid item xs={12} md={4}>
+
+          <Grid item xs={12} md={isMobile ? 12 : 4}>
             <Card>
-              <CardContent>
-                <Typography variant="h6">Distribución por Titular</Typography>
-                <Box sx={{ height: 300 }}>
+              <CardContent sx={responsiveStyles.card}>
+                <Typography variant={isMobile ? "subtitle1" : "h6"}>
+                  Distribución por Titular
+                </Typography>
+                <Box sx={responsiveStyles.chart}>
                   <ResponsiveContainer>
                     <PieChart>
                       <Pie
@@ -223,12 +328,15 @@ const overdueLoans = getActiveOverdueLoans(loans);
                         ]}
                         cx="50%"
                         cy="50%"
-                        innerRadius={60}
-                        outerRadius={80}
+                        innerRadius={isMobile ? 40 : 60}
+                        outerRadius={isMobile ? 60 : 80}
                         dataKey="value"
                       />
-                      <Tooltip formatter={(value) => formatters.currency(value)} />
-                      <Legend />
+                      <Tooltip 
+                        formatter={(value) => formatters.currency(value)}
+                        contentStyle={{ fontSize: isMobile ? '0.75rem' : '1rem' }}
+                      />
+                      <Legend wrapperStyle={{ fontSize: isMobile ? '0.75rem' : '1rem' }}/>
                     </PieChart>
                   </ResponsiveContainer>
                 </Box>
@@ -238,29 +346,28 @@ const overdueLoans = getActiveOverdueLoans(loans);
         </Grid>
       </TabPanel>
 
+      {/* Panel de Préstamos */}
       <TabPanel value={value} index={1}>
-        <Grid container spacing={responsiveGridStyles.spacing}>
+        <Grid container spacing={responsiveStyles.grid.spacing}>
           <Grid item xs={12}>
             <Card sx={{ bgcolor: 'primary.light' }}>
-              <CardContent>
-                <Grid container spacing={responsiveGridStyles.spacing}>
+              <CardContent sx={responsiveStyles.card}>
+                <Grid container spacing={responsiveStyles.grid.spacing}>
                   <Grid item xs={12} md={4}>
                     <Typography variant="subtitle1">Capital Total</Typography>
-                    <Typography variant="h5">
+                    <Typography variant={isMobile ? "h6" : "h5"}>
                       {formatters.currency(calculateLoans.getTotalCapital())}
                     </Typography>
                   </Grid>
-                  <Grid container spacing={responsiveGridStyles.spacing}>
                   <Grid item xs={12} md={4}>
                     <Typography variant="subtitle1">Total Pagado</Typography>
-                    <Typography variant="h5">
+                    <Typography variant={isMobile ? "h6" : "h5"}>
                       {formatters.currency(calculateLoans.getTotalPaid())}
                     </Typography>
                   </Grid>
-                  <Grid container spacing={responsiveGridStyles.spacing}>
                   <Grid item xs={12} md={4}>
                     <Typography variant="subtitle1">Saldo Restante</Typography>
-                    <Typography variant="h5">
+                    <Typography variant={isMobile ? "h6" : "h5"}>
                       {formatters.currency(calculateLoans.getRemainingBalance())}
                     </Typography>
                   </Grid>
@@ -268,27 +375,33 @@ const overdueLoans = getActiveOverdueLoans(loans);
                 <LinearProgress
                   variant="determinate"
                   value={(calculateLoans.getTotalPaid() / calculateLoans.getTotalCapital()) * 100}
-                  sx={{ mt: 2, height: 8, borderRadius: 4 }}
+                  sx={{ 
+                    mt: 2, 
+                    height: isMobile ? 6 : 8, 
+                    borderRadius: 4 
+                  }}
                 />
               </CardContent>
             </Card>
           </Grid>
 
           {loans.map(loan => (
-            <Grid container spacing={responsiveGridStyles.spacing}>
-            <Grid item xs={12} md={6} key={loan.id}>
+            <Grid item xs={12} md={isMobile ? 12 : 6} key={loan.id}>
               <Card>
-                <CardContent>
-                  <Typography variant="h6">{loan.name}</Typography>
-                  <Typography color="textSecondary">Titular: {loan.owner}</Typography>
+                <CardContent sx={responsiveStyles.card}>
+                  <Typography variant={isMobile ? "subtitle1" : "h6"}>
+                    {loan.name}
+                  </Typography>
+                  <Typography color="textSecondary">
+                    Titular: {loan.owner}
+                  </Typography>
                   
                   <Box sx={{ mt: 2 }}>
-                      <Grid container spacing={responsiveGridStyles.spacing}>
+                    <Grid container spacing={responsiveStyles.grid.spacing}>
                       <Grid item xs={6}>
                         <Typography variant="subtitle2">Capital</Typography>
                         <Typography>{formatters.currency(loan.capital)}</Typography>
                       </Grid>
-                      <Grid container spacing={responsiveGridStyles.spacing}>
                       <Grid item xs={6}>
                         <Typography variant="subtitle2">Cuota</Typography>
                         <Typography>{formatters.currency(loan.amount)}</Typography>
@@ -310,7 +423,11 @@ const overdueLoans = getActiveOverdueLoans(loans);
                       <LinearProgress
                         variant="determinate"
                         value={calculateLoans.getProgress(loan)}
-                        sx={{ mt: 1, height: 6, borderRadius: 3 }}
+                        sx={{ 
+                          mt: 1, 
+                          height: isMobile ? 4 : 6, 
+                          borderRadius: 3 
+                        }}
                       />
                     </Box>
                     
@@ -320,31 +437,19 @@ const overdueLoans = getActiveOverdueLoans(loans);
               </Card>
             </Grid>
           ))}
-
-          {calculateLoans.getOverdueLoans().length > 0 && (
-            
-            <Grid container spacing={responsiveGridStyles.spacing}>
-            <Grid item xs={12}>
-              <Alert severity="error">
-                <AlertTitle>Préstamos Vencidos</AlertTitle>
-                {calculateLoans.getOverdueLoans().map(loan => (
-                  <Typography key={loan.id}>
-                    {loan.name} - Próximo vencimiento: {formatters.date(loan.nextPaymentDate)}
-                  </Typography>
-                ))}
-              </Alert>
-            </Grid>
-          )}
         </Grid>
       </TabPanel>
 
+      {/* Panel de Servicios */}
       <TabPanel value={value} index={2}>
-          <Grid container spacing={responsiveGridStyles.spacing}>
-          <Grid item xs={12} md={6}>
+        <Grid container spacing={responsiveStyles.grid.spacing}>
+          <Grid item xs={12} md={isMobile ? 12 : 6}>
             <Card>
-              <CardContent>
-                <Typography variant="h6">Servicios Digitales (Cuenta 6039)</Typography>
-                <List>
+              <CardContent sx={responsiveStyles.card}>
+                <Typography variant={isMobile ? "subtitle1" : "h6"}>
+                  Servicios Digitales (Cuenta 6039)
+                </Typography>
+                <List dense={isMobile}>
                   {services[0].items.map((service, index) => (
                     <ListItem key={index}>
                       <ListItemText
@@ -361,7 +466,10 @@ const overdueLoans = getActiveOverdueLoans(loans);
                                 <LinearProgress 
                                   variant="determinate" 
                                   value={service.contract.progress} 
-                                  sx={{ mt: 1 }}
+                                  sx={{ 
+                                    mt: 1,
+                                    height: isMobile ? 4 : 6
+                                  }}
                                 />
                                 <Typography variant="caption" sx={{ display: 'block', textAlign: 'right' }}>
                                   {service.contract.progress.toFixed(1)}%
@@ -376,23 +484,25 @@ const overdueLoans = getActiveOverdueLoans(loans);
                 </List>
                 <Divider />
                 <Box sx={{ mt: 2 }}>
-                  <Typography variant="h6">
+                  <Typography variant={isMobile ? "subtitle1" : "h6"}>
                     Total Servicios Mensuales: {formatters.currency(monthlyTotal)}
                   </Typography>
                 </Box>
               </CardContent>
             </Card>
           </Grid>
-          <Grid container spacing={responsiveGridStyles.spacing}>
-          <Grid item xs={12} md={6}>
+
+          <Grid item xs={12} md={isMobile ? 12 : 6}>
             <Card>
-              <CardContent>
-                <Typography variant="h6">Próximos Vencimientos</Typography>
-                <List>
+              <CardContent sx={responsiveStyles.card}>
+                <Typography variant={isMobile ? "subtitle1" : "h6"}>
+                  Próximos Vencimientos
+                </Typography>
+                <List dense={isMobile}>
                   {upcomingPayments.map((payment, index) => (
                     <ListItem key={index}>
                       <ListItemIcon>
-                        <Calendar />
+                        <Calendar size={isMobile ? 16 : 20} />
                       </ListItemIcon>
                       <ListItemText 
                         primary={`${payment.service}`}
@@ -404,16 +514,21 @@ const overdueLoans = getActiveOverdueLoans(loans);
               </CardContent>
             </Card>
 
-            <Card sx={{ mt: 3 }}>
-              <CardContent>
-                <Typography variant="h6">Estado de Contratos</Typography>
+            <Card sx={{ mt: isMobile ? 2 : 3 }}>
+              <CardContent sx={responsiveStyles.card}>
+                <Typography variant={isMobile ? "subtitle1" : "h6"}>
+                  Estado de Contratos
+                </Typography>
                 {contractStatus.map((contract, index) => (
                   <Box key={index} sx={{ mt: 2 }}>
                     <Typography variant="subtitle1">{contract.name}</Typography>
                     <LinearProgress 
                       variant="determinate"
                       value={contract.progress}
-                      sx={{ mb: 1 }}
+                      sx={{ 
+                        mb: 1,
+                        height: isMobile ? 4 : 6
+                      }}
                     /> 
                     <Typography variant="caption" sx={{ display: 'block', textAlign: 'right' }}>
                       {contract.progress.toFixed(1)}%
@@ -427,16 +542,24 @@ const overdueLoans = getActiveOverdueLoans(loans);
         </Grid>
       </TabPanel>
 
+      {/* Panel de Cuentas */}
       <TabPanel value={value} index={3}>
-        <Grid container spacing={responsiveGridStyles.spacing}>
+        <Grid container spacing={responsiveStyles.grid.spacing}>
           {accounts.map((account) => (
-            <Grid item xs={12} md={4} key={account.id}>
+            <Grid item xs={12} md={isMobile ? 12 : 4} key={account.id}>
               <Card>
-                <CardContent>
-                  <Typography variant="h6">{account.name} ({account.id})</Typography>
+                <CardContent sx={responsiveStyles.card}>
+                  <Typography variant={isMobile ? "subtitle1" : "h6"}>
+                    {account.name} ({account.id})
+                  </Typography>
                   <Box sx={{ mt: 2 }}>
-                    <Typography sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <CreditCard size={20} />
+                    <Typography sx={{ 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      gap: 1,
+                      fontSize: isMobile ? '0.875rem' : '1rem'
+                    }}>
+                      <CreditCard size={isMobile ? 16 : 20} />
                       {account.type}
                       {account.expiry && ` (vence ${account.expiry})`}
                     </Typography>
@@ -444,10 +567,15 @@ const overdueLoans = getActiveOverdueLoans(loans);
                     {account.income && (
                       <Box sx={{ mt: 2 }}>
                         <Typography variant="subtitle2">Ingresos:</Typography>
-                        <List dense>
+                        <List dense={isMobile}>
                           {account.income.map((income, idx) => (
                             <ListItem key={idx}>
-                              <ListItemText primary={income} />
+                              <ListItemText 
+                                primary={income}
+                                primaryTypographyProps={{
+                                  fontSize: isMobile ? '0.875rem' : '1rem'
+                                }}
+                              />
                             </ListItem>
                           ))}
                         </List>
@@ -457,10 +585,15 @@ const overdueLoans = getActiveOverdueLoans(loans);
                     {account.linkedLoans && (
                       <Box sx={{ mt: 2 }}>
                         <Typography variant="subtitle2">Préstamos vinculados:</Typography>
-                        <List dense>
+                        <List dense={isMobile}>
                           {account.linkedLoans.map((loan, idx) => (
                             <ListItem key={idx}>
-                              <ListItemText primary={loan} />
+                              <ListItemText 
+                                primary={loan}
+                                primaryTypographyProps={{
+                                  fontSize: isMobile ? '0.875rem' : '1rem'
+                                }}
+                              />
                             </ListItem>
                           ))}
                         </List>
@@ -468,7 +601,13 @@ const overdueLoans = getActiveOverdueLoans(loans);
                     )}
 
                     {account.backup && (
-                      <Typography color="textSecondary" sx={{ mt: 2 }}>
+                      <Typography 
+                        color="textSecondary" 
+                        sx={{ 
+                          mt: 2,
+                          fontSize: isMobile ? '0.875rem' : '1rem'
+                        }}
+                      >
                         Tarjeta de respaldo
                       </Typography>
                     )}
@@ -480,9 +619,14 @@ const overdueLoans = getActiveOverdueLoans(loans);
         </Grid>
       </TabPanel>
           
+      {/* Panel de Carga de Archivos */}
       <TabPanel value={value} index={4}>
-        <FileUploader />
+        <Box sx={{ p: isMobile ? 1 : 2 }}>
+          <FileUploader />
+        </Box>
       </TabPanel>
     </Box>
   );
 }
+
+export default Dashboard;
