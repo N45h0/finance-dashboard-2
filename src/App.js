@@ -21,12 +21,46 @@ function TabPanel(props) {
   );
 }
 
-export default function Dashboard() {
+export default function Dashboard{
+const useWindowSize = () => {
+    const [windowSize, setWindowSize] = useState({
+      width: window.innerWidth,
+      height: window.innerHeight,
+    });
+
+    useEffect(() => {
+      const handleResize = () => {
+        setWindowSize({
+          width: window.innerWidth,
+          height: window.innerHeight,
+        });
+      };
+
+      window.addEventListener('resize', handleResize);
+      return () => window.removeEventListener('resize', handleResize);
+    }, []);
+
+    return windowSize;
+  };
   const [value, setValue] = useState(0);
   const monthlyTotal = calculateServices.getMonthlyTotal();
   const upcomingPayments = calculateServices.getUpcomingPayments();
   const contractStatus = calculateServices.getContractStatus();
+  const { width } = useWindowSize();
+  const isMobile = width <= 768;
+  const isTablet = width <= 1024;
+  const responsiveCardStyles = {
+    width: '100%',
+    maxWidth: isMobile ? '100%' : '1200px',
+    margin: 'auto',
+    p: isMobile ? 1 : 3,
+  };
 
+  const responsiveGridStyles = {
+    spacing: isMobile ? 1 : 3,
+  };
+
+  const responsiveChartHeight = isMobile ? 200 : 300;
   const handleChange = (event, newValue) => {
     setValue(newValue);
   };
@@ -62,8 +96,9 @@ const getActiveOverdueLoans = (loans) => {
   const totalRemaining = totalLoans - totalPaid;
   const overallProgress = (totalPaid / totalLoans) * 100;
 const overdueLoans = getActiveOverdueLoans(loans);
-
+  
   return (
+    <Box sx={responsiveCardStyles}>
     <Box sx={{ maxWidth: 1200, margin: 'auto', p: 3 }}>
       <Typography variant="h4" gutterBottom>
         Dashboard Financiero Personal
