@@ -55,13 +55,14 @@ const useWindowSize = () => {
     };
 
     window.addEventListener('resize', handleResize);
-    handleResize(); // Llamada inicial
+    handleResize();
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
   return windowSize;
 };
 
+// Componente TabPanel
 function TabPanel(props) {
   const { children, value, index, ...other } = props;
   return (
@@ -143,7 +144,6 @@ function Dashboard() {
   const totalRemaining = totalLoans - totalPaid;
   const overallProgress = (totalPaid / totalLoans) * 100;
   const overdueLoans = getActiveOverdueLoans(loans);
-
   return (
     <Box sx={responsiveStyles.container}>
       <Typography 
@@ -625,6 +625,9 @@ function Dashboard() {
           <FileUploader />
         </Box>
       </TabPanel>
+    </Box>
   );
 }
+
+// Export al final del archivo
 export default Dashboard;
