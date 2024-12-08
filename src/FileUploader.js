@@ -1,92 +1,87 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { createWorker } from 'tesseract.js';
 import * as pdfjsLib from 'pdfjs-dist';
 import { ToastContainer, toast } from 'react-toastify';
-import { Button, Box, Typography, CircularProgress } from '@mui/material';
-import { Upload, File } from 'lucide-react';
-import 'react-toastify/dist/ReactToastify.css';
+import { Button, Box, Typography, CircularProgress, Card } from '@mui/material';
+import { Upload, File, AlertCircle } from 'lucide-react';
+import { Alert, AlertTitle } from '@/components/ui/alert';
 
 const FileUploader = () => {
+  const [worker, setWorker] = useState(null);
+  const [isWorkerReady, setIsWorkerReady] = useState(false);
   const [uploadedData, setUploadedData] = useState([]);
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [isProcessing, setIsProcessing] = useState(false);
   const [progressMap, setProgressMap] = useState({});
-  const [previews, setPreviews] = useState([]);
-  const [unsupportedFiles, setUnsupportedFiles] = useState([]);
-  const [pendingValidation, setPendingValidation] = useState(null);
+
+  // Inicializar el worker de Tesseract
+  useEffect(() => {
+    const initWorker = async () => {
+      try {
+        const newWorker = await createWorker({
+          logger: progress => {
+            if (progress.status === 'recognizing text') {
+              setProgressMap(prev => ({
+                ...prev,
+                ['general']: Math.floor(progress.progress * 100)
+              }));
+            }
+          },
+        });
+
+        // Inicializar con ambos idiomas
+        await newWorker.loadLanguage('eng+spa');
+        await newWorker.initialize('eng+spa');
+        
+        setWorker(newWorker);
+        setIsWorkerReady(true);
+        toast.success('Sistema OCR inicializado correctamente');
+      } catch (error) {
+        console.error('Error initializing Tesseract:', error);
+        toast.error('Error al inicializar el sistema OCR');
+      }
+    };
+
+    initWorker();
+
+    // Cleanup
+    return () => {
+      if (worker) {
+        worker.terminate();
+      }
+    };
+  }, []);
 
   // Procesar PDF
   const processPDF = async (file) => {
     try {
       const arrayBuffer = await file.arrayBuffer();
       const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-
+      
       let text = '';
       for (let i = 1; i <= pdf.numPages; i++) {
         const page = await pdf.getPage(i);
         const content = await page.getTextContent();
-        text += content.items.map((item) => item.str).join(' ');
+        text += content.items.map(item => item.str).join(' ');
       }
-
+      
       return text;
     } catch (error) {
-      console.error('Error processing PDF:', error);
-      throw new Error('Error al procesar el PDF');
+      throw new Error(`Error al procesar PDF: ${error.message}`);
     }
   };
 
-  // Procesar imágenes con OCR
-  const processImage = async (file, fileName) => {
-    try {
-      // Inicializar worker con CDNs
-      const worker = await createWorker({
-        workerPath: 'https://cdn.jsdelivr.net/npm/tesseract.js@2.1.5/dist/worker.min.js',
-        langPath: 'https://raw.githubusercontent.com/naptha/tessdata/gh-pages/4.0.0_best',
-        corePath: 'https://cdn.jsdelivr.net/npm/tesseract.js-core@2.1.4/tesseract-core.wasm.js',
-        logger: (info) => {
-          if (info.status === 'recognizing text') {
-            setProgressMap((prev) => ({
-              ...prev,
-              [fileName]: Math.floor(info.progress * 100),
-            }));
-          }
-        },
-      });
+  // Procesar imagen
+  const processImage = async (file) => {
+    if (!worker || !isWorkerReady) {
+      throw new Error('El sistema OCR no está listo');
+    }
 
-      await worker.loadLanguage('spa+eng');
-      await worker.initialize('spa+eng');
-      
+    try {
       const { data: { text } } = await worker.recognize(file);
-      
-      await worker.terminate();
       return text;
     } catch (error) {
-      console.error('Error processing image:', error);
-      throw new Error('Error al procesar la imagen');
-    }
-  };
-
-  // Clasificar y validar datos extraídos
-  const classifyAndValidate = (text, fileName) => {
-    try {
-      if (text.includes('UTILIZACIÓN ADELANTO DE SUELDO')) {
-        setPendingValidation({
-          type: 'adelanto_utilizacion',
-          description: 'Utilización de adelanto de sueldo',
-          details: { fileName, content: text },
-        });
-      } else if (text.includes('COBRO DE ADS')) {
-        setPendingValidation({
-          type: 'adelanto_cobro',
-          description: 'Cobro de adelanto de sueldo',
-          details: { fileName, content: text },
-        });
-      } else {
-        toast.error(`No se pudo clasificar el documento: ${fileName}`);
-      }
-    } catch (error) {
-      console.error('Error classifying document:', error);
-      toast.error(`Error al clasificar el documento: ${fileName}`);
+      throw new Error(`Error al procesar imagen: ${error.message}`);
     }
   };
 
@@ -97,185 +92,123 @@ const FileUploader = () => {
   };
 
   const handleUpload = async () => {
+    if (!isWorkerReady) {
+      toast.error('El sistema OCR aún no está listo. Por favor, espere.');
+      return;
+    }
+
     if (selectedFiles.length === 0) {
       toast.warning('Por favor, seleccione archivos primero');
       return;
     }
 
     setIsProcessing(true);
-    const previewUrls = [];
-    const unsupported = [];
-    const results = [];
 
     try {
       for (const file of selectedFiles) {
-        const fileName = file.name;
-
-        if (['application/pdf', 'image/jpeg', 'image/jpg', 'image/png'].includes(file.type)) {
-          if (['image/jpeg', 'image/jpg', 'image/png'].includes(file.type)) {
-            const url = URL.createObjectURL(file);
-            previewUrls.push({ name: fileName, url });
-          }
-
+        setProgressMap(prev => ({ ...prev, [file.name]: 0 }));
+        
+        try {
           let text;
-          try {
-            text = file.type === 'application/pdf'
-              ? await processPDF(file)
-              : await processImage(file, fileName);
-            
-            results.push({ fileName, content: text });
-            classifyAndValidate(text, fileName);
-          } catch (error) {
-            toast.error(`Error procesando ${fileName}: ${error.message}`);
+          if (file.type === 'application/pdf') {
+            text = await processPDF(file);
+          } else if (['image/jpeg', 'image/jpg', 'image/png'].includes(file.type)) {
+            text = await processImage(file);
+          } else {
+            toast.error(`Formato no soportado: ${file.name}`);
+            continue;
           }
-        } else {
-          unsupported.push(fileName);
+
+          // Procesar el texto extraído
+          if (text.includes('UTILIZACIÓN ADELANTO DE SUELDO') || 
+              text.includes('COBRO DE ADS')) {
+            setUploadedData(prev => [...prev, { 
+              fileName: file.name, 
+              content: text,
+              type: text.includes('UTILIZACIÓN') ? 'utilizacion' : 'cobro'
+            }]);
+            toast.success(`Archivo procesado: ${file.name}`);
+          } else {
+            toast.warning(`No se encontró información relevante en: ${file.name}`);
+          }
+        } catch (error) {
+          toast.error(`Error procesando ${file.name}: ${error.message}`);
         }
       }
-
-      setPreviews(previewUrls);
-      setUnsupportedFiles(unsupported);
-      
-      if (unsupported.length > 0) {
-        toast.warning(`Archivos no soportados: ${unsupported.join(', ')}`);
-      }
-      
-      if (results.length > 0) {
-        toast.success('Archivos procesados correctamente');
-      }
-    } catch (error) {
-      toast.error(`Error general: ${error.message}`);
     } finally {
       setIsProcessing(false);
       setSelectedFiles([]);
+      setProgressMap({});
     }
-  };
-
-  const confirmMovement = (isConfirmed) => {
-    if (!isConfirmed) {
-      toast.info('Movimiento descartado.');
-    } else if (pendingValidation) {
-      const { type, description, details } = pendingValidation;
-      toast.success(`Confirmado: ${description}`);
-      setUploadedData((prev) => [...prev, { ...details, type }]);
-    }
-    setPendingValidation(null);
   };
 
   return (
-    <Box sx={{ p: 2 }}>
-      <Typography variant="h6" gutterBottom>
-        Uploader de Archivos
-      </Typography>
-
-      <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
-        <Button
-          variant="contained"
-          component="label"
-          startIcon={<File />}
-          disabled={isProcessing}
-        >
-          Seleccionar Archivos
-          <input
-            type="file"
-            hidden
-            onChange={handleFileSelect}
-            accept=".pdf,.jpg,.jpeg,.png"
-            multiple
-          />
-        </Button>
-
-        <Button
-          variant="contained"
-          color="primary"
-          startIcon={isProcessing ? <CircularProgress size={20} color="inherit" /> : <Upload />}
-          onClick={handleUpload}
-          disabled={isProcessing || selectedFiles.length === 0}
-        >
-          {isProcessing ? 'Procesando...' : 'Subir Archivos'}
-        </Button>
-      </Box>
-
-      {selectedFiles.length > 0 && (
-        <Typography variant="body2" sx={{ mb: 2 }}>
-          {selectedFiles.length} archivo(s) seleccionado(s)
+    <Box className="p-4">
+      <Card className="p-6">
+        <Typography variant="h6" className="mb-4">
+          Uploader de Archivos
         </Typography>
-      )}
 
-      {/* Mensajes informativos */}
-      <Typography variant="body2" color="text.secondary">
-        Formatos soportados: PDF, JPG, JPEG, PNG (máximo 10 archivos)
-      </Typography>
+        {!isWorkerReady && (
+          <Alert className="mb-4">
+            <AlertCircle className="w-4 h-4" />
+            <AlertTitle>Inicializando sistema OCR...</AlertTitle>
+            <Typography>Por favor, espere mientras se prepara el sistema.</Typography>
+          </Alert>
+        )}
 
-      {unsupportedFiles.length > 0 && (
-        <Box sx={{ mt: 2 }}>
-          <Typography variant="subtitle2" color="error">
-            Archivos no soportados:
+        <Box className="flex gap-4 mb-4">
+          <Button
+            variant="contained"
+            component="label"
+            startIcon={<File />}
+            disabled={isProcessing || !isWorkerReady}
+          >
+            Seleccionar Archivos
+            <input
+              type="file"
+              hidden
+              onChange={handleFileSelect}
+              accept=".pdf,.jpg,.jpeg,.png"
+              multiple
+            />
+          </Button>
+
+          <Button
+            variant="contained"
+            color="primary"
+            startIcon={isProcessing ? <CircularProgress size={20} /> : <Upload />}
+            onClick={handleUpload}
+            disabled={isProcessing || selectedFiles.length === 0 || !isWorkerReady}
+          >
+            {isProcessing ? 'Procesando...' : 'Subir Archivos'}
+          </Button>
+        </Box>
+
+        {selectedFiles.length > 0 && (
+          <Typography variant="body2" className="mb-4">
+            {selectedFiles.length} archivo(s) seleccionado(s)
           </Typography>
-          <ul>
-            {unsupportedFiles.map((fileName, index) => (
-              <li key={index}>{fileName}</li>
-            ))}
-          </ul>
-        </Box>
-      )}
+        )}
 
-      {/* Previsualizaciones */}
-      {previews.length > 0 && (
-        <Box sx={{ mt: 2 }}>
-          <Typography variant="subtitle2">Previsualización</Typography>
-          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 1 }}>
-            {previews.map((preview, index) => (
-              <img 
-                key={index} 
-                src={preview.url} 
-                alt={preview.name}
-                style={{ 
-                  maxWidth: '200px',
-                  maxHeight: '200px',
-                  objectFit: 'contain',
-                  border: '1px solid #ccc',
-                  borderRadius: '4px'
-                }} 
-              />
-            ))}
+        <Typography variant="body2" color="text.secondary">
+          Formatos soportados: PDF, JPG, JPEG, PNG (máximo 10 archivos)
+        </Typography>
+
+        {Object.entries(progressMap).map(([fileName, progress]) => (
+          <Box key={fileName} className="mt-2">
+            <Typography variant="caption">{fileName}</Typography>
+            <CircularProgress 
+              variant="determinate" 
+              value={progress} 
+              className="ml-2"
+              size={16}
+            />
           </Box>
-        </Box>
-      )}
+        ))}
+      </Card>
 
-      {/* Validación pendiente */}
-      {pendingValidation && (
-        <Box sx={{ 
-          mt: 2, 
-          p: 2, 
-          border: '1px solid #ccc', 
-          borderRadius: 1,
-          backgroundColor: '#f5f5f5'
-        }}>
-          <Typography variant="subtitle1">¿Confirmar este movimiento?</Typography>
-          <Typography variant="body2" sx={{ mb: 2 }}>
-            Tipo: {pendingValidation.description}
-          </Typography>
-          <Box sx={{ display: 'flex', gap: 1 }}>
-            <Button
-              variant="contained"
-              color="success"
-              onClick={() => confirmMovement(true)}
-            >
-              Confirmar
-            </Button>
-            <Button
-              variant="outlined"
-              color="error"
-              onClick={() => confirmMovement(false)}
-            >
-              Descartar
-            </Button>
-          </Box>
-        </Box>
-      )}
-
-      <ToastContainer 
+      <ToastContainer
         position="bottom-right"
         autoClose={5000}
         hideProgressBar={false}
