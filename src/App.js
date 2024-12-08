@@ -628,5 +628,3 @@ export default function Dashboard() {
     </Box>
   );
 }
-
-export default Dashboard;
