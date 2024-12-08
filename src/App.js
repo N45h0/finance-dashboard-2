@@ -625,6 +625,5 @@ export default function Dashboard() {
           <FileUploader />
         </Box>
       </TabPanel>
-    </Box>
   );
 }
