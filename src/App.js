@@ -71,7 +71,7 @@ function TabPanel(props) {
   );
 }
 
-export default function Dashboard() {
+function Dashboard() {
   const { width } = useWindowSize();
   const isMobile = width <= 768;
   const isTablet = width <= 1024;
@@ -627,3 +627,4 @@ export default function Dashboard() {
       </TabPanel>
   );
 }
+export default Dashboard;
