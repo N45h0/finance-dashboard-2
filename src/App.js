@@ -135,19 +135,21 @@ const overdueLoans = getActiveOverdueLoans(loans);
         <Card sx={{ mb: 3 }}>
           <CardContent>
             <Typography variant="h6">Resumen Global de Préstamos</Typography>
-            <Grid container spacing={2} sx={{ mt: 2 }}>
+            <Grid container spacing={responsiveGridStyles.spacing}>
               <Grid item xs={12} sm={4}>
                 <Box sx={{ bgcolor: 'primary.light', p: 2, borderRadius: 2 }}>
                   <Typography variant="body2">Monto Total Préstamos</Typography>
                   <Typography variant="h6">{formatters.currency(totalLoans)}</Typography>
                 </Box>
               </Grid>
+              <Grid container spacing={responsiveGridStyles.spacing}>
               <Grid item xs={12} sm={4}>
                 <Box sx={{ bgcolor: 'success.light', p: 2, borderRadius: 2 }}>
                   <Typography variant="body2">Monto Pagado</Typography>
                   <Typography variant="h6">{formatters.currency(totalPaid)}</Typography>
                 </Box>
               </Grid>
+              <Grid container spacing={responsiveGridStyles.spacing}>
               <Grid item xs={12} sm={4}>
                 <Box sx={{ bgcolor: 'warning.light', p: 2, borderRadius: 2 }}>
                   <Typography variant="body2">Monto Restante</Typography>
@@ -165,7 +167,7 @@ const overdueLoans = getActiveOverdueLoans(loans);
           </CardContent>
         </Card>
 
-        <Grid container spacing={3}>
+        <Grid container spacing={responsiveGridStyles.spacing}>
           <Grid item xs={12} md={4}>
             <Card>
               <CardContent>
@@ -206,7 +208,7 @@ const overdueLoans = getActiveOverdueLoans(loans);
               </CardContent>
             </Card>
           </Grid>
-
+          <Grid container spacing={responsiveGridStyles.spacing}>
           <Grid item xs={12} md={4}>
             <Card>
               <CardContent>
@@ -237,23 +239,25 @@ const overdueLoans = getActiveOverdueLoans(loans);
       </TabPanel>
 
       <TabPanel value={value} index={1}>
-        <Grid container spacing={3}>
+        <Grid container spacing={responsiveGridStyles.spacing}>
           <Grid item xs={12}>
             <Card sx={{ bgcolor: 'primary.light' }}>
               <CardContent>
-                <Grid container spacing={2}>
+                <Grid container spacing={responsiveGridStyles.spacing}>
                   <Grid item xs={12} md={4}>
                     <Typography variant="subtitle1">Capital Total</Typography>
                     <Typography variant="h5">
                       {formatters.currency(calculateLoans.getTotalCapital())}
                     </Typography>
                   </Grid>
+                  <Grid container spacing={responsiveGridStyles.spacing}>
                   <Grid item xs={12} md={4}>
                     <Typography variant="subtitle1">Total Pagado</Typography>
                     <Typography variant="h5">
                       {formatters.currency(calculateLoans.getTotalPaid())}
                     </Typography>
                   </Grid>
+                  <Grid container spacing={responsiveGridStyles.spacing}>
                   <Grid item xs={12} md={4}>
                     <Typography variant="subtitle1">Saldo Restante</Typography>
                     <Typography variant="h5">
@@ -271,6 +275,7 @@ const overdueLoans = getActiveOverdueLoans(loans);
           </Grid>
 
           {loans.map(loan => (
+            <Grid container spacing={responsiveGridStyles.spacing}>
             <Grid item xs={12} md={6} key={loan.id}>
               <Card>
                 <CardContent>
@@ -278,11 +283,12 @@ const overdueLoans = getActiveOverdueLoans(loans);
                   <Typography color="textSecondary">Titular: {loan.owner}</Typography>
                   
                   <Box sx={{ mt: 2 }}>
-                    <Grid container spacing={2}>
+                      <Grid container spacing={responsiveGridStyles.spacing}>
                       <Grid item xs={6}>
                         <Typography variant="subtitle2">Capital</Typography>
                         <Typography>{formatters.currency(loan.capital)}</Typography>
                       </Grid>
+                      <Grid container spacing={responsiveGridStyles.spacing}>
                       <Grid item xs={6}>
                         <Typography variant="subtitle2">Cuota</Typography>
                         <Typography>{formatters.currency(loan.amount)}</Typography>
@@ -316,6 +322,8 @@ const overdueLoans = getActiveOverdueLoans(loans);
           ))}
 
           {calculateLoans.getOverdueLoans().length > 0 && (
+            
+            <Grid container spacing={responsiveGridStyles.spacing}>
             <Grid item xs={12}>
               <Alert severity="error">
                 <AlertTitle>Préstamos Vencidos</AlertTitle>
@@ -331,7 +339,7 @@ const overdueLoans = getActiveOverdueLoans(loans);
       </TabPanel>
 
       <TabPanel value={value} index={2}>
-        <Grid container spacing={3}>
+          <Grid container spacing={responsiveGridStyles.spacing}>
           <Grid item xs={12} md={6}>
             <Card>
               <CardContent>
@@ -375,7 +383,7 @@ const overdueLoans = getActiveOverdueLoans(loans);
               </CardContent>
             </Card>
           </Grid>
-
+          <Grid container spacing={responsiveGridStyles.spacing}>
           <Grid item xs={12} md={6}>
             <Card>
               <CardContent>
@@ -420,7 +428,7 @@ const overdueLoans = getActiveOverdueLoans(loans);
       </TabPanel>
 
       <TabPanel value={value} index={3}>
-        <Grid container spacing={3}>
+        <Grid container spacing={responsiveGridStyles.spacing}>
           {accounts.map((account) => (
             <Grid item xs={12} md={4} key={account.id}>
               <Card>
