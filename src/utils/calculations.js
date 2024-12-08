@@ -2,94 +2,58 @@ import _ from 'lodash';
 import loans from '../data/loans';
 import services from '../data/services';
 
-// Utility para cálculos financieros
-const LoanCalculator = {
-  /**
-   * Calcula el monto total pagado de un préstamo
-   * @param {Object} loan - Objeto préstamo
-   * @returns {number} Monto total pagado
-   */
-  calculatePaidAmount(loan) {
-    const paidInstallments = loan.paidInstallments || 0;
-    const installmentAmount = loan.amount || 0;
-    return paidInstallments * installmentAmount;
+// Definimos el objeto calculateLoans antes de exportarlo
+const calculateLoans = {
+  getTotalCapital: () => {
+    return _.sumBy(loans, 'capital') || 0;
   },
 
-  /**
-   * Calcula el saldo restante de un préstamo
-   * @param {Object} loan - Objeto préstamo
-   * @returns {number} Saldo restante
-   */
-  calculateRemainingBalance(loan) {
-    // Si hay un balance actual registrado, usamos ese
-    if (loan.currentBalance !== undefined) {
-      return loan.currentBalance;
-    }
-    
-    // Si no, calculamos basado en pagos realizados
-    const totalPaid = this.calculatePaidAmount(loan);
-    return loan.capital - totalPaid;
+  getTotalPaid: () => {
+    return _.sumBy(loans, loan => 
+      (loan.paidInstallments || 0) * (loan.amount || 0)
+    ) || 0;
   },
 
-  /**
-   * Calcula el resumen global de préstamos
-   * @param {Array} loans - Array de préstamos
-   * @returns {Object} Resumen de préstamos
-   */
-  calculateLoansSummary(loans) {
-    const summary = loans.reduce((acc, loan) => {
-      const paidAmount = this.calculatePaidAmount(loan);
-      const remainingBalance = this.calculateRemainingBalance(loan);
-      
-      return {
-        totalCapital: acc.totalCapital + loan.capital,
-        totalPaid: acc.totalPaid + paidAmount,
-        remainingBalance: acc.remainingBalance + remainingBalance
-      };
-    }, {
-      totalCapital: 0,
-      totalPaid: 0,
-      remainingBalance: 0
+  getRemainingBalance: () => {
+    return _.sumBy(loans, loan => 
+      loan.currentBalance || (loan.capital - ((loan.paidInstallments || 0) * loan.amount))
+    ) || 0;
+  },
+
+  getProgress: (loan) => {
+    if (!loan?.installments || !loan?.paidInstallments) return 0;
+    const progress = (loan.paidInstallments / loan.installments) * 100;
+    return _.clamp(progress, 0, 100);
+  },
+
+  getMonthlyPayments: () => {
+    return _.sumBy(loans, 'amount') || 0;
+  },
+
+  getOverdueLoans: () => {
+    const today = new Date();
+    return _.filter(loans, loan => {
+      if (!loan.nextPaymentDate && loan.isOverdue) return true;
+      if (!loan.nextPaymentDate) return false;
+      return new Date(loan.nextPaymentDate) < today;
     });
-
-    // Validación de consistencia
-    if (Math.abs(summary.totalCapital - (summary.totalPaid + summary.remainingBalance)) > 0.01) {
-      console.warn('Detectada inconsistencia en los cálculos de préstamos');
-    }
-
-    return summary;
   },
 
-  /**
-   * Agrupa préstamos por titular
-   * @param {Array} loans - Array de préstamos
-   * @returns {Object} Préstamos agrupados por titular
-   */
-  groupLoansByOwner(loans) {
-    return loans.reduce((acc, loan) => {
-      if (!acc[loan.owner]) {
-        acc[loan.owner] = {
-          totalCapital: 0,
-          totalPaid: 0,
-          remainingBalance: 0,
-          loans: []
-        };
-      }
-
-      const paidAmount = this.calculatePaidAmount(loan);
-      const remainingBalance = this.calculateRemainingBalance(loan);
-
-      acc[loan.owner].totalCapital += loan.capital;
-      acc[loan.owner].totalPaid += paidAmount;
-      acc[loan.owner].remainingBalance += remainingBalance;
-      acc[loan.owner].loans.push(loan);
-
-      return acc;
-    }, {});
+  getLoansByOwner: () => {
+    const groupedLoans = _.groupBy(loans, 'owner');
+    
+    return _.mapValues(groupedLoans, ownerLoans => ({
+      total: _.sumBy(ownerLoans, 'capital') || 0,
+      paid: _.sumBy(ownerLoans, loan => 
+        (loan.paidInstallments || 0) * (loan.amount || 0)
+      ) || 0,
+      remaining: _.sumBy(ownerLoans, loan => 
+        loan.currentBalance || (loan.capital - ((loan.paidInstallments || 0) * loan.amount))
+      ) || 0,
+      loans: ownerLoans
+    }));
   }
 };
-
-export default LoanCalculator;
 
 const calculateServices = {
   getMonthlyTotal: () => {
