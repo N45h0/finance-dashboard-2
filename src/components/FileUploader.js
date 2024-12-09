@@ -48,7 +48,7 @@ const FileUploader = () => {
             }
           },
         });
-
+  
         await newWorker.loadLanguage('eng+spa');
         await newWorker.initialize('eng+spa');
         
@@ -61,9 +61,9 @@ const FileUploader = () => {
         toast.error('Error al inicializar el sistema OCR');
       }
     };
-
+  
     initWorker();
-
+  
     return () => {
       if (worker) {
         worker.terminate();
