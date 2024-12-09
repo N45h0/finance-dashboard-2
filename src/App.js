@@ -625,7 +625,7 @@ function Dashboard() {
       {/* Panel de Cuentas */}
       <TabPanel value={value} index={3}>
         <Grid container spacing={responsiveStyles.grid.spacing}>
-          {accounts.map((account) => (
+        {Array.isArray(accounts) && accounts.map((account) => (
             <Grid item xs={12} md={isMobile ? 12 : 4} key={account.id}>
               <Card>
                 <CardContent sx={responsiveStyles.card}>
