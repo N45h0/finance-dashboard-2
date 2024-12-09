@@ -34,42 +34,61 @@ const FileUploader = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [progressMap, setProgressMap] = useState({});
   const [error, setError] = useState(null);
-
-  useEffect(() => {
-    const initWorker = async () => {
-      try {
-        const newWorker = await createWorker({
-          logger: progress => {
-            if (progress.status === 'recognizing text') {
-              setProgressMap(prev => ({
-                ...prev,
-                ['general']: Math.floor(progress.progress * 100)
-              }));
-            }
-          },
-        });
-
-        await newWorker.loadLanguage('eng+spa');
-        await newWorker.initialize('eng+spa');
-        
-        setWorker(newWorker);
-        setIsWorkerReady(true);
-        toast.success('Sistema OCR inicializado correctamente');
-      } catch (error) {
-        console.error('Error initializing Tesseract:', error);
-        setError('Error al inicializar el sistema OCR');
-        toast.error('Error al inicializar el sistema OCR');
-      }
-    };
-
-    initWorker();
-
-    return () => {
-      if (worker) {
-        worker.terminate();
-      }
-    };
-  }, []);
+  
+    useEffect(() => {
+      const initTesseract = async () => {
+        try {
+          setIsLoading(true);
+          setError(null);
+          
+          const worker = await createWorker({
+            workerPath: '/tesseract/worker.min.js',
+            langPath: '/tesseract/lang-data',
+            corePath: '/tesseract/tesseract-core.wasm.js',
+            logger: m => console.log(m)
+          });
+  
+          await worker.loadLanguage('eng+spa');
+          await worker.initialize('eng+spa');
+          
+          window.tesseractWorker = worker;
+          setIsLoading(false);
+        } catch (err) {
+          console.error('Tesseract init error:', err);
+          setError(err.message);
+          setIsLoading(false);
+        }
+      };
+  
+      initTesseract();
+    }, [retryCount]);
+  
+    const handleRetry = () => setRetryCount(prev => prev + 1);
+  
+    if (error) {
+      return (
+        <Box className="p-4">
+          <Alert severity="error" className="mb-4">
+            <AlertTitle>Error de Inicialización</AlertTitle>
+            <Typography>No se pudo inicializar el sistema OCR</Typography>
+            <Button onClick={handleRetry} variant="contained" color="error" sx={{ mt: 2 }}>
+              Reintentar
+            </Button>
+          </Alert>
+        </Box>
+      );
+    }
+  
+    if (isLoading) {
+      return (
+        <Box className="p-4">
+          <Alert severity="info">
+            <AlertTitle>Inicializando sistema OCR</AlertTitle>
+            <LinearProgress sx={{ mt: 2 }} />
+          </Alert>
+        </Box>
+      );
+    }
 
   const processPDF = async (file) => {
     try {
