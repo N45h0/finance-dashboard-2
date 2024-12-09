@@ -1,3 +1,18 @@
+import React, { useState, useEffect } from 'react';
+import { 
+  Card, 
+  CardContent, 
+  Grid, 
+  Typography, 
+  List, 
+  ListItem, 
+  ListItemText,
+  Alert,
+  Box
+} from '@mui/material';
+import { CreditCard } from 'lucide-react';
+import formatters from '../utils/formatters';
+
 const accounts = [
   {
     id: "6039",
@@ -71,13 +86,13 @@ const accounts = [
       total: 8527.91        // Total mensual
     },
     monthlyInflow: {
-      estimated: 20000,     // Suma de ingresos estimados
+      estimated: 20000,     // Suma de ingresos estimados 
       services: 0,          // Reembolsos o devoluciones de servicios
       total: 20000
     },
     balance: {
       available: true,      // Indica si tenemos acceso al balance
-      lastUpdate: null,     // Fecha de última actualización
+      lastUpdate: null,     // Fecha de última actualización 
       amount: null          // Monto actual
     }
   },
@@ -85,7 +100,7 @@ const accounts = [
     id: "2477",
     name: "Visa Santander Débito",
     type: "Visa débito",
-    status: "active",
+    status: "active", 
     primary: false,
     income: [
       {
@@ -123,7 +138,7 @@ const accounts = [
     monthlyInflow: {
       estimated: 70000,     // Suma de ingresos estimados
       services: 0,
-      total: 70000
+      total: 70000  
     },
     balance: {
       available: true,
@@ -144,22 +159,22 @@ const accounts = [
       total: 0
     },
     monthlyInflow: {
-      estimated: 0,
+      estimated: 0, 
       services: 0,
       total: 0
     },
     balance: {
       available: true,
-      lastUpdate: null,
+      lastUpdate: null, 
       amount: null
-    }
+    }  
   }
 ];
 
 // Función para validar la coherencia de los datos
 const validateAccounts = () => {
   accounts.forEach(account => {
-    // Verificar que los totales coincidan
+    // Verificar que los totales coincidan 
     const calculatedServicesOutflow = (account.services || [])
       .reduce((sum, service) => sum + (service.amount || 0), 0);
     
@@ -174,7 +189,7 @@ const validateAccounts = () => {
 
     if (calculatedLoansOutflow !== account.monthlyOutflow.loans) {
       console.warn(`Discrepancia en préstamos de cuenta ${account.id}:`,
-        `Calculado: ${calculatedLoansOutflow},`,
+        `Calculado: ${calculatedLoansOutflow},`, 
         `Registrado: ${account.monthlyOutflow.loans}`);
     }
 
@@ -185,7 +200,7 @@ const validateAccounts = () => {
     if (calculatedInflow !== account.monthlyInflow.estimated) {
       console.warn(`Discrepancia en ingresos de cuenta ${account.id}:`,
         `Calculado: ${calculatedInflow},`,
-        `Registrado: ${account.monthlyInflow.estimated}`);
+        `Registrado: ${account.monthlyInflow.estimated}`); 
     }
   });
 };
@@ -193,4 +208,65 @@ const validateAccounts = () => {
 // Ejecutar validación al importar
 validateAccounts();
 
-export default accounts;
+// Componente AccountsTab
+const AccountsTab = () => {
+  const [error, setError] = useState(null);
+  const [accounts, setAccounts] = useState([]);
+
+  useEffect(() => {
+    try {
+      // Importar cuentas dinámicamente para evitar problemas de carga inicial
+      import('../data/accounts').then(module => {
+        setAccounts(module.default);
+      }).catch(err => {
+        setError('Error loading accounts data');
+        console.error(err);
+      });
+    } catch (err) {
+      setError('Error initializing accounts view'); 
+      console.error(err);
+    }
+  }, []);
+
+  if (error) {
+    return (
+      <Alert severity="error" sx={{ m: 2 }}>
+        {error}        
+      </Alert>
+    );
+  }
+
+  return (
+    <Grid container spacing={3}>
+      {accounts.map((account) => (
+        <Grid item xs={12} md={4} key={account.id}>
+          <Card>
+            <CardContent>
+              <Typography variant="h6" gutterBottom>
+                {account.name}
+              </Typography>
+              <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                <CreditCard size={20} className="mr-2" />
+                <Typography>{account.type}</Typography>
+              </Box>
+              {account.income && (
+                <List>
+                  {account.income.map((income, idx) => (
+                    <ListItem key={idx}>
+                      <ListItemText 
+                        primary={income.source}
+                        secondary={formatters.currency(income.estimatedAmount)} 
+                      />
+                    </ListItem>
+                  ))}
+                </List>
+              )}
+            </CardContent>
+          </Card>
+        </Grid>
+      ))}
+    </Grid>
+  );  
+};
+
+export default AccountsTab;
