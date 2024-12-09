@@ -24,6 +24,7 @@ import {
   Image as ImageIcon 
 } from 'lucide-react';
 import { Alert, AlertTitle } from '@mui/material';
+import { documentUtils } from '../services/documentAnalyzer';
 
 const FileUploader = () => {
   const [worker, setWorker] = useState(null);
