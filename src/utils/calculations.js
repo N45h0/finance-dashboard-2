@@ -2,88 +2,6 @@ import _ from 'lodash';
 import loans from '../data/loans';
 import services from '../data/services';
 
-// Utilidades de fecha
-const dateUtils = {
-  addMonths: (date, months) => {
-    const newDate = new Date(date);
-    newDate.setMonth(newDate.getMonth() + months);
-    return newDate;
-  },
-  
-  getDaysDifference: (date1, date2) => {
-    return Math.floor((date2 - date1) / (1000 * 60 * 60 * 24));
-  }
-};
-
-const calculateLoans = {
-  getTotalCapital: () => {
-    return _.sumBy(loans, 'capital') || 0;
-  },
-
-  getTotalPaid: () => {
-    return _.sumBy(loans, loan => 
-      (loan.paidInstallments || 0) * (loan.amount || 0)
-    ) || 0;
-  },
-
-  getRemainingBalance: () => {
-    return _.sumBy(loans, loan => {
-      // Si hay balance actual definido, usarlo
-      if (loan.currentBalance !== undefined) {
-        return loan.currentBalance;
-      }
-      // Calcular basado en cuotas pagadas
-      const paidAmount = (loan.paidInstallments || 0) * (loan.amount || 0);
-      return loan.capital - paidAmount;
-    }) || 0;
-  },
-
-  getProgress: (loan) => {
-    if (!loan?.installments || !loan?.paidInstallments) return 0;
-    const progress = (loan.paidInstallments / loan.installments) * 100;
-    return _.clamp(progress, 0, 100);
-  },
-
-  getOverallProgress: () => {
-    const totalCapital = calculateLoans.getTotalCapital();
-    const totalPaid = calculateLoans.getTotalPaid();
-    return totalCapital > 0 ? _.clamp((totalPaid / totalCapital) * 100, 0, 100) : 0;
-  },
-
-  getProjectedPayments: () => {
-    return loans.map(loan => {
-      const remainingInstallments = loan.installments - (loan.paidInstallments || 0);
-      if (remainingInstallments <= 0) return { loanId: loan.id, payments: [], totalProjected: 0 };
-
-      let currentDate = loan.nextPaymentDate ? new Date(loan.nextPaymentDate) : new Date();
-      const projectedPayments = Array.from({ length: remainingInstallments }, (_, i) => ({
-        date: dateUtils.addMonths(currentDate, i),
-        amount: loan.amount,
-        projected: true,
-        installmentNumber: (loan.paidInstallments || 0) + i + 1
-      }));
-
-      return {
-        loanId: loan.id,
-        loanName: loan.name,
-        payments: projectedPayments,
-        totalProjected: loan.amount * remainingInstallments
-      };
-    });
-  },
-
-  getLoansByOwner: () => {
-    const groupedLoans = _.groupBy(loans, 'owner');
-    
-    return _.mapValues(groupedLoans, ownerLoans => ({
-      total: _.sumBy(ownerLoans, 'capital'),
-      paid: _.sumBy(ownerLoans, loan => 
-        (loan.paidInstallments || 0) * (loan.amount || 0)
-      ),
-import _ from 'lodash';
-import loans from '../data/loans';
-import services from '../data/services';
-
 // Utilidades de fecha mejoradas
 const dateUtils = {
   addMonths: (date, months) => {
@@ -105,31 +23,26 @@ const dateUtils = {
 };
 
 const calculateLoans = {
-  // Obtener capital total de préstamos
   getTotalCapital: () => {
     return _.sumBy(loans, 'capital') || 0;
   },
 
-  // Obtener total pagado real basado en historial
   getTotalPaid: () => {
     return _.sumBy(loans, loan => 
       _.sumBy(loan.paymentHistory, 'amount')
     ) || 0;
   },
 
-  // Obtener saldo restante actual
   getRemainingBalance: () => {
     return _.sumBy(loans, 'currentBalance') || 0;
   },
 
-  // Calcular progreso de un préstamo específico
   getProgress: (loan) => {
     if (!loan?.installments || loan.installments === 0) return 0;
     if (loan.status === 'completed') return 100;
     return _.clamp((loan.paidInstallments / loan.installments) * 100, 0, 100);
   },
 
-  // Calcular progreso general de todos los préstamos
   getOverallProgress: () => {
     const totalAmountToPay = _.sumBy(loans, 'totalAmountToPay');
     const totalPaid = calculateLoans.getTotalPaid();
@@ -137,7 +50,6 @@ const calculateLoans = {
       _.clamp((totalPaid / totalAmountToPay) * 100, 0, 100) : 0;
   },
 
-  // Calcular pagos proyectados con moras
   getProjectedPayments: () => {
     const today = new Date();
     
@@ -191,7 +103,6 @@ const calculateLoans = {
     });
   },
 
-  // Obtener préstamos por titular con totales
   getLoansByOwner: () => {
     const groupedLoans = _.groupBy(loans, 'owner');
     
@@ -201,30 +112,21 @@ const calculateLoans = {
       const overdueLoans = activeLoans.filter(loan => loan.isOverdue);
 
       return {
-        // Totales generales
         totalCapital: _.sumBy(ownerLoans, 'capital'),
         totalAmountToPay: _.sumBy(ownerLoans, 'totalAmountToPay'),
         currentBalance: _.sumBy(ownerLoans, 'currentBalance'),
         totalPaid: _.sumBy(ownerLoans, loan => 
           _.sumBy(loan.paymentHistory, 'amount')),
-
-        // Métricas de préstamos
         activeLoansCount: activeLoans.length,
         completedLoansCount: completedLoans.length,
         overdueLoansCount: overdueLoans.length,
-
-        // Pagos mensuales
         monthlyPayment: _.sumBy(activeLoans, 'amount'),
-
-        // Moras y vencimientos
         totalOverdueAmount: _.sumBy(overdueLoans, 'amount'),
         projectedLateFees: _.sumBy(overdueLoans, loan => {
           const daysOverdue = dateUtils.calculateDaysOverdue(loan.nextPaymentDate);
           return loan.moratory ? 
             (loan.amount * (loan.moratory / 100) * daysOverdue / 30) : 0;
         }),
-
-        // Referencias a préstamos
         loans: ownerLoans,
         activeLoans,
         completedLoans,
@@ -233,7 +135,6 @@ const calculateLoans = {
     });
   },
 
-  // Obtener préstamos vencidos con detalles
   getOverdueLoans: () => {
     return loans
       .filter(loan => loan.status === 'active' && loan.isOverdue)
@@ -254,7 +155,6 @@ const calculateLoans = {
       });
   },
 
-  // Nueva función para obtener estadísticas generales
   getGeneralStats: () => {
     const activeLoans = loans.filter(loan => loan.status === 'active');
     const completedLoans = loans.filter(loan => loan.status === 'completed');
@@ -265,14 +165,11 @@ const calculateLoans = {
       activeLoansCount: activeLoans.length,
       completedLoansCount: completedLoans.length,
       overdueLoansCount: overdueLoans.length,
-
       totalCapital: calculateLoans.getTotalCapital(),
       totalPaid: calculateLoans.getTotalPaid(),
       totalRemaining: calculateLoans.getRemainingBalance(),
-
       totalAmountToPay: _.sumBy(loans, 'totalAmountToPay'),
       totalMonthlyPayment: _.sumBy(activeLoans, 'amount'),
-      
       projectedLateFees: _.sumBy(overdueLoans, loan => {
         const daysOverdue = dateUtils.calculateDaysOverdue(loan.nextPaymentDate);
         return loan.moratory ? 
@@ -337,7 +234,6 @@ const calculateServices = {
             service.billingDay
           );
           
-          // Si la fecha ya pasó, mover al próximo mes
           if (nextPayment < today) {
             nextPayment.setMonth(nextPayment.getMonth() + 1);
           }
@@ -363,8 +259,6 @@ const calculateServices = {
 
   getServiceAlerts: () => {
     const today = new Date();
-    const thirtyDaysFromNow = dateUtils.addMonths(today, 1);
-
     return _.flatMap(services, category =>
       category.items
         .filter(service => service?.contract?.renewalDate)
