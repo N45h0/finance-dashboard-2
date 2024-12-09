@@ -71,12 +71,14 @@ const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
 // Componente TabPanel
 function TabPanel(props) {
   const { children, value, index, ...other } = props;
+  
   return (
-    <div 
+    <div
       role="tabpanel"
-      hidden={value !== index}
+      className={`transition-opacity duration-200 ${value === index ? 'opacity-100' : 'opacity-0 hidden'}`}
       id={`finance-tabpanel-${index}`}
       aria-labelledby={`finance-tab-${index}`}
+      aria-hidden={value !== index}
       {...other}
     >
       {value === index && (
