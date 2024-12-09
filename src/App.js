@@ -31,7 +31,7 @@ import {
   Cell 
 } from 'recharts';
 import { CreditCard, Calendar, AlertCircle } from 'lucide-react';
-import FileUploader from './FileUploader';
+import FileUploader from './components/FileUploader.js';
 
 // Importar datos y utilidades
 import loans from './data/loans';
@@ -40,6 +40,7 @@ import accounts from './data/accounts';
 import { calculateLoans, calculateServices } from './utils/calculations';
 import PaymentHistory from './components/PaymentHistory';
 import formatters from './utils/formatters';
+import dateUtils from './utils/dateUtils.js';
 
 // Hook personalizado para el tamaño de ventana
 const useWindowSize = () => {
