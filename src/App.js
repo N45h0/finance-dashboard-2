@@ -335,7 +335,7 @@ const handleChange = (event, newValue) => {
           </Card>
         ))}
 
-{/* Préstamos Vencidos */}
+        {/* Préstamos Vencidos */}
         {loanSummary.overdueLoans.length > 0 && (
           <Card sx={{ mb: 3, bgcolor: 'error.light' }}>
             <CardContent sx={responsiveStyles.card}>
@@ -361,9 +361,9 @@ const handleChange = (event, newValue) => {
               </Grid>
             </CardContent>
           </Card>
-        )}
+        )}      
       </TabPanel>
-        
+
       {/* Panel de Préstamos */}
       <TabPanel value={value} index={1}>
         <Grid container spacing={responsiveStyles.grid.spacing}>
