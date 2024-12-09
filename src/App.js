@@ -14,7 +14,8 @@ import {
   ListItem, 
   ListItemIcon, 
   ListItemText, 
-  Divider 
+  Divider,
+  CircularProgress
 } from '@mui/material';
 import { 
   LineChart, 
@@ -26,9 +27,10 @@ import {
   Legend, 
   ResponsiveContainer, 
   PieChart, 
-  Pie 
+  Pie,
+  Cell 
 } from 'recharts';
-import { CreditCard, Calendar } from 'lucide-react';
+import { CreditCard, Calendar, AlertCircle } from 'lucide-react';
 import FileUploader from './FileUploader';
 
 // Importar datos y utilidades
@@ -62,12 +64,25 @@ const useWindowSize = () => {
   return windowSize;
 };
 
+// Colores para gráficos
+const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
+
 // Componente TabPanel
 function TabPanel(props) {
   const { children, value, index, ...other } = props;
   return (
-    <div hidden={value !== index} {...other}>
-      {value === index && <Box sx={{ p: { xs: 1, sm: 2, md: 3 } }}>{children}</Box>}
+    <div 
+      role="tabpanel"
+      hidden={value !== index}
+      id={`finance-tabpanel-${index}`}
+      aria-labelledby={`finance-tab-${index}`}
+      {...other}
+    >
+      {value === index && (
+        <Box sx={{ p: { xs: 1, sm: 2, md: 3 } }}>
+          {children}
+        </Box>
+      )}
     </div>
   );
 }
@@ -79,6 +94,7 @@ function Dashboard() {
 
   // Estados
   const [value, setValue] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
   const [loanSummary, setLoanSummary] = useState({
     totalCapital: 0,
     totalPaid: 0,
@@ -86,7 +102,8 @@ function Dashboard() {
     overallProgress: 0,
     projectedPayments: [],
     overdueLoans: [],
-    loansByOwner: {}
+    loansByOwner: {},
+    generalStats: {}
   });
   
   const [serviceSummary, setServiceSummary] = useState({
@@ -96,6 +113,8 @@ function Dashboard() {
     serviceAlerts: [],
     contractStatus: []
   });
+
+  const [error, setError] = useState(null);
 
   // Estilos responsivos
   const responsiveStyles = {
@@ -120,67 +139,73 @@ function Dashboard() {
     },
   };
 
-const handleChange = (event, newValue) => {
+  const handleChange = (event, newValue) => {
     setValue(newValue);
   };
 
   // Efecto para cargar datos iniciales
   useEffect(() => {
-    // Calcular resumen de préstamos
-    setLoanSummary({
-      totalCapital: calculateLoans.getTotalCapital(),
-      totalPaid: calculateLoans.getTotalPaid(),
-      remainingBalance: calculateLoans.getRemainingBalance(),
-      overallProgress: calculateLoans.getOverallProgress(),
-      projectedPayments: calculateLoans.getProjectedPayments(),
-      overdueLoans: calculateLoans.getOverdueLoans(),
-      loansByOwner: calculateLoans.getLoansByOwner()
-    });
+    const loadData = async () => {
+      try {
+        setIsLoading(true);
 
-    // Calcular resumen de servicios
-    setServiceSummary({
-      monthlyTotal: calculateServices.getMonthlyTotal(),
-      annualizedCosts: calculateServices.getAnnualizedCosts(),
-      upcomingPayments: calculateServices.getUpcomingPayments(),
-      serviceAlerts: calculateServices.getServiceAlerts(),
-      contractStatus: calculateServices.getContractStatus()
-    });
+        // Calcular resumen de préstamos
+        const generalStats = calculateLoans.getGeneralStats();
+        setLoanSummary({
+          totalCapital: calculateLoans.getTotalCapital(),
+          totalPaid: calculateLoans.getTotalPaid(),
+          remainingBalance: calculateLoans.getRemainingBalance(),
+          overallProgress: calculateLoans.getOverallProgress(),
+          projectedPayments: calculateLoans.getProjectedPayments(),
+          overdueLoans: calculateLoans.getOverdueLoans(),
+          loansByOwner: calculateLoans.getLoansByOwner(),
+          generalStats
+        });
+
+        // Calcular resumen de servicios
+        setServiceSummary({
+          monthlyTotal: calculateServices.getMonthlyTotal(),
+          annualizedCosts: calculateServices.getAnnualizedCosts(),
+          upcomingPayments: calculateServices.getUpcomingPayments(),
+          serviceAlerts: calculateServices.getServiceAlerts(),
+          contractStatus: calculateServices.getContractStatus()
+        });
+
+      } catch (err) {
+        console.error('Error loading data:', err);
+        setError('Error al cargar los datos. Por favor, intente nuevamente.');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadData();
   }, []);
 
-  // Función para préstamos vencidos activos
-  const getActiveOverdueLoans = (loans) => {
-    const today = new Date();
-    return loans.filter(loan => {
-      return (
-        loan.nextPaymentDate && 
-        loan.paidInstallments < loan.installments && 
-        loan.currentBalance > 0 && 
-        new Date(loan.nextPaymentDate) < today
-      );
-    });
-  };
+  if (isLoading) {
+    return (
+      <Box 
+        sx={{ 
+          display: 'flex', 
+          justifyContent: 'center', 
+          alignItems: 'center', 
+          height: '100vh' 
+        }}
+      >
+        <CircularProgress />
+      </Box>
+    );
+  }
 
-  // Alertas de servicios
-  const serviceAlerts = services.map(category => 
-    category.items
-      .filter(service => {
-        const today = new Date();
-        const renewalDate = new Date(service.contract?.renewalDate);
-        return renewalDate && (renewalDate - today) / (1000 * 60 * 60 * 24) <= 30;
-      })
-      .map(service => ({
-        type: 'renewal',
-        message: `${service.name} se renovará el ${formatters.date(service.contract.renewalDate)}`,
-        severity: 'warning'
-      }))
-  ).flat();
+  if (error) {
+    return (
+      <Alert severity="error" sx={{ m: 2 }}>
+        <AlertTitle>Error</AlertTitle>
+        {error}
+      </Alert>
+    );
+  }
 
-  // Cálculos de préstamos
-  const totalLoans = loans.reduce((acc, loan) => acc + loan.capital, 0);
-  const totalPaid = loans.reduce((acc, loan) => acc + (loan.capital * (loan.paidInstallments/loan.installments)), 0);
-  const totalRemaining = totalLoans - totalPaid;
-  const overallProgress = (totalPaid / totalLoans) * 100;
-  const overdueLoans = getActiveOverdueLoans(loans);
   return (
     <Box sx={responsiveStyles.container}>
       <Typography 
@@ -193,33 +218,36 @@ const handleChange = (event, newValue) => {
 
       {/* Alertas */}
       <Box sx={{ mb: isMobile ? 2 : 3 }}>
-        {overdueLoans.length > 0 && (
+        {loanSummary.overdueLoans.length > 0 && (
           <Alert 
             severity="error" 
             sx={{ mb: 2, fontSize: isMobile ? '0.875rem' : '1rem' }}
           >
             <AlertTitle>Préstamos Vencidos</AlertTitle>
-            {overdueLoans.map(loan => (
+            {loanSummary.overdueLoans.map(loan => (
               <Typography 
                 key={loan.id}
                 sx={{ fontSize: isMobile ? '0.875rem' : '1rem' }}
               >
                 {loan.name} - {formatters.currency(loan.currentBalance)} - 
                 Vencimiento: {formatters.date(loan.nextPaymentDate)}
+                {loan.projectedLateFees > 0 && (
+                  <Typography component="span" color="error">
+                    {' '}(Mora estimada: {formatters.currency(loan.projectedLateFees)})
+                  </Typography>
+                )}
               </Typography>
             ))}
           </Alert>
         )}
 
-        {serviceAlerts.map((alert, index) => (
+        {serviceSummary.serviceAlerts.map((alert, index) => (
           <Alert 
             key={index} 
             severity={alert.severity} 
-            sx={{ 
-              mb: 2,
-              fontSize: isMobile ? '0.875rem' : '1rem'
-            }}
+            sx={{ mb: 2, fontSize: isMobile ? '0.875rem' : '1rem' }}
           >
+            <AlertTitle>{alert.type === 'renewal' ? 'Renovación Próxima' : alert.type}</AlertTitle>
             {alert.message}
           </Alert>
         ))}
@@ -247,8 +275,7 @@ const handleChange = (event, newValue) => {
         <Tab label="Cargar Archivos" />
       </Tabs>
 
-          
-{/* Panel de Resumen */}
+      {/* Panel de Resumen */}
       <TabPanel value={value} index={0}>
         <Card sx={{ mb: isMobile ? 2 : 3 }}>
           <CardContent sx={responsiveStyles.card}>
@@ -310,58 +337,77 @@ const handleChange = (event, newValue) => {
           </CardContent>
         </Card>
 
-        {/* Préstamos por Titular */}
-        {Object.entries(loanSummary.loansByOwner).map(([owner, data]) => (
-          <Card key={owner} sx={{ mb: 3 }}>
-            <CardContent sx={responsiveStyles.card}>
-              <Typography variant={isMobile ? "subtitle1" : "h6"}>
-                Préstamos de {owner}
-              </Typography>
-              <Grid container spacing={2}>
-                <Grid item xs={12} md={4}>
-                  <Typography variant="subtitle2">Total</Typography>
-                  <Typography>{formatters.currency(data.total)}</Typography>
-                </Grid>
-                <Grid item xs={12} md={4}>
-                  <Typography variant="subtitle2">Pagado</Typography>
-                  <Typography>{formatters.currency(data.paid)}</Typography>
-                </Grid>
-                <Grid item xs={12} md={4}>
-                  <Typography variant="subtitle2">Restante</Typography>
-                  <Typography>{formatters.currency(data.remaining)}</Typography>
-                </Grid>
-              </Grid>
-            </CardContent>
-          </Card>
-        ))}
+        {/* Distribución por Titular */}
+        <Grid container spacing={responsiveStyles.grid.spacing}>
+          <Grid item xs={12} md={isMobile ? 12 : 6}>
+            <Card>
+              <CardContent sx={responsiveStyles.card}>
+                <Typography variant={isMobile ? "subtitle1" : "h6"}>
+                  Distribución por Titular
+                </Typography>
+                <Box sx={{ height: isMobile ? 200 : 300, mt: 2 }}>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={Object.entries(loanSummary.loansByOwner).map(([owner, data]) => ({
+                          name: owner,
+                          value: data.currentBalance
+                        }))}
+                        cx="50%"
+                        cy="50%"
+                        labelLine={false}
+                        outerRadius={80}
+                        fill="#8884d8"
+                        dataKey="value"
+                      >
+                        {Object.entries(loanSummary.loansByOwner).map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                        ))}
+                      </Pie>
+                      <Tooltip formatter={(value) => formatters.currency(value)} />
+                      <Legend />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </Box>
+              </CardContent>
+            </Card>
+          </Grid>
 
-        {/* Préstamos Vencidos */}
-        {loanSummary.overdueLoans.length > 0 && (
-          <Card sx={{ mb: 3, bgcolor: 'error.light' }}>
-            <CardContent sx={responsiveStyles.card}>
-              <Typography variant={isMobile ? "subtitle1" : "h6"}>
-                Préstamos Vencidos
-              </Typography>
-              <Grid container spacing={2}>
-                {loanSummary.overdueLoans.map(loan => (
-                  <Grid item xs={12} md={6} key={loan.id}>
-                    <Card>
-                      <CardContent>
-                        <Typography variant="h6">{loan.name}</Typography>
-                        <Typography color="error">
-                          {loan.daysOverdue} días de atraso
-                          {loan.projectedLateFees > 0 && (
-                            <> - Mora estimada: {formatters.currency(loan.projectedLateFees)}</>
-                          )}
-                        </Typography>
-                      </CardContent>
-                    </Card>
-                  </Grid>
-                ))}
-              </Grid>
-            </CardContent>
-          </Card>
-        )}      
+          <Grid item xs={12} md={isMobile ? 12 : 6}>
+            <Card>
+              <CardContent sx={responsiveStyles.card}>
+                <Typography variant={isMobile ? "subtitle1" : "h6"}>
+                  Próximos Vencimientos
+                </Typography>
+                <List dense={isMobile}>
+                  {loanSummary.projectedPayments
+                    .filter(projection => projection.payments.length > 0)
+                    .map(projection => (
+                      <ListItem key={projection.loanId}>
+                        <ListItemIcon>
+                          <Calendar size={isMobile ? 16 : 20} />
+                        </ListItemIcon>
+                        <ListItemText
+                          primary={projection.loanName}
+                          secondary={
+                            <>
+                              {formatters.date(projection.payments[0].date)} - 
+                              {formatters.currency(projection.payments[0].amount)}
+                              {projection.payments[0].lateFee > 0 && (
+                                <Typography component="span" color="error">
+                                  {' '}(+{formatters.currency(projection.payments[0].lateFee)} mora)
+                                </Typography>
+                              )}
+                            </>
+                          }
+                        />
+                      </ListItem>
+                  ))}
+                </List>
+              </CardContent>
+            </Card>
+          </Grid>
+        </Grid>
       </TabPanel>
 
       {/* Panel de Préstamos */}
@@ -374,25 +420,25 @@ const handleChange = (event, newValue) => {
                   <Grid item xs={12} md={4}>
                     <Typography variant="subtitle1">Capital Total</Typography>
                     <Typography variant={isMobile ? "h6" : "h5"}>
-                      {formatters.currency(calculateLoans.getTotalCapital())}
+                      {formatters.currency(loanSummary.totalCapital)}
                     </Typography>
                   </Grid>
                   <Grid item xs={12} md={4}>
                     <Typography variant="subtitle1">Total Pagado</Typography>
                     <Typography variant={isMobile ? "h6" : "h5"}>
-                      {formatters.currency(calculateLoans.getTotalPaid())}
+                      {formatters.currency(loanSummary.totalPaid)}
                     </Typography>
                   </Grid>
                   <Grid item xs={12} md={4}>
                     <Typography variant="subtitle1">Saldo Restante</Typography>
                     <Typography variant={isMobile ? "h6" : "h5"}>
-                      {formatters.currency(calculateLoans.getRemainingBalance())}
+                      {formatters.currency(loanSummary.remainingBalance)}
                     </Typography>
                   </Grid>
                 </Grid>
                 <LinearProgress
                   variant="determinate"
-                  value={(calculateLoans.getTotalPaid() / calculateLoans.getTotalCapital()) * 100}
+                  value={loanSummary.overallProgress}
                   sx={{ 
                     mt: 2, 
                     height: isMobile ? 6 : 8, 
@@ -403,13 +449,27 @@ const handleChange = (event, newValue) => {
             </Card>
           </Grid>
 
+          {/* Lista de Préstamos */}
           {loans.map(loan => (
             <Grid item xs={12} md={isMobile ? 12 : 6} key={loan.id}>
               <Card>
                 <CardContent sx={responsiveStyles.card}>
-                  <Typography variant={isMobile ? "subtitle1" : "h6"}>
-                    {loan.name}
-                  </Typography>
+                  <Box sx={{ 
+                    display: 'flex', 
+                    justifyContent: 'space-between', 
+                    alignItems: 'center' 
+                  }}>
+                    <Typography variant={isMobile ? "subtitle1" : "h6"}>
+                      {loan.name}
+                    </Typography>
+                    {loan.isOverdue && (
+                      <Chip 
+                        label="Vencido" 
+                        color="error" 
+                        size="small"
+                      />
+                    )}
+                  </Box>
                   <Typography color="textSecondary">
                     Titular: {loan.owner}
                   </Typography>
@@ -465,7 +525,7 @@ const handleChange = (event, newValue) => {
             <Card>
               <CardContent sx={responsiveStyles.card}>
                 <Typography variant={isMobile ? "subtitle1" : "h6"}>
-                  Servicios Digitales (Cuenta 6039)
+                  Servicios Digitales
                 </Typography>
                 <List dense={isMobile}>
                   {services[0].items.map((service, index) => (
@@ -476,9 +536,9 @@ const handleChange = (event, newValue) => {
                           <>
                             {formatters.currency(service.price.amount, service.price.currency)}
                             {service.price.currency === "USD" && 
-                              `(${formatters.currency(service.price.uyuEquivalent)})`}
+                              ` (${formatters.currency(service.price.uyuEquivalent)})`}
                             <br />
-                            {service.billingCycle === 'annual' && '(Pago Anual)'}
+                            {formatters.billingCycle(service.billingCycle)}
                             {service.contract && (
                               <>
                                 <LinearProgress 
@@ -500,12 +560,10 @@ const handleChange = (event, newValue) => {
                     </ListItem>
                   ))}
                 </List>
-                <Divider />
-                <Box sx={{ mt: 2 }}>
-                  <Typography variant={isMobile ? "subtitle1" : "h6"}>
-                    Total Servicios Mensuales: {formatters.currency(monthlyTotal)}
-                  </Typography>
-                </Box>
+                <Divider sx={{ my: 2 }} />
+                <Typography variant={isMobile ? "subtitle1" : "h6"}>
+                  Total Mensual: {formatters.currency(serviceSummary.monthlyTotal)}
+                </Typography>
               </CardContent>
             </Card>
           </Grid>
@@ -517,13 +575,13 @@ const handleChange = (event, newValue) => {
                   Próximos Vencimientos
                 </Typography>
                 <List dense={isMobile}>
-                  {upcomingPayments.map((payment, index) => (
+                  {serviceSummary.upcomingPayments.map((payment, index) => (
                     <ListItem key={index}>
                       <ListItemIcon>
                         <Calendar size={isMobile ? 16 : 20} />
                       </ListItemIcon>
                       <ListItemText 
-                        primary={`${payment.service}`}
+                        primary={payment.service}
                         secondary={`${formatters.date(payment.date)} - ${formatters.currency(payment.amount)}`}
                       />
                     </ListItem>
@@ -532,14 +590,17 @@ const handleChange = (event, newValue) => {
               </CardContent>
             </Card>
 
+            {/* Estado de Contratos */}
             <Card sx={{ mt: isMobile ? 2 : 3 }}>
               <CardContent sx={responsiveStyles.card}>
                 <Typography variant={isMobile ? "subtitle1" : "h6"}>
                   Estado de Contratos
                 </Typography>
-                {contractStatus.map((contract, index) => (
+                {serviceSummary.contractStatus.map((contract, index) => (
                   <Box key={index} sx={{ mt: 2 }}>
-                    <Typography variant="subtitle1">{contract.name}</Typography>
+                    <Typography variant="subtitle1">
+                      {contract.name}
+                    </Typography>
                     <LinearProgress 
                       variant="determinate"
                       value={contract.progress}
@@ -589,10 +650,8 @@ const handleChange = (event, newValue) => {
                           {account.income.map((income, idx) => (
                             <ListItem key={idx}>
                               <ListItemText 
-                                primary={income}
-                                primaryTypographyProps={{
-                                  fontSize: isMobile ? '0.875rem' : '1rem'
-                                }}
+                                primary={income.source}
+                                secondary={formatters.currency(income.estimatedAmount)}
                               />
                             </ListItem>
                           ))}
@@ -600,18 +659,26 @@ const handleChange = (event, newValue) => {
                       </Box>
                     )}
 
-                    {account.linkedLoans && (
+                    {account.services && account.services.length > 0 && (
+                      <Box sx={{ mt: 2 }}>
+                        <Typography variant="subtitle2">Servicios asociados:</Typography>
+                        <List dense={isMobile}>
+                          {account.services.map((service, idx) => (
+                            <ListItem key={idx}>
+                              <ListItemText primary={service} />
+                            </ListItem>
+                          ))}
+                        </List>
+                      </Box>
+                    )}
+
+                    {account.linkedLoans && account.linkedLoans.length > 0 && (
                       <Box sx={{ mt: 2 }}>
                         <Typography variant="subtitle2">Préstamos vinculados:</Typography>
                         <List dense={isMobile}>
                           {account.linkedLoans.map((loan, idx) => (
                             <ListItem key={idx}>
-                              <ListItemText 
-                                primary={loan}
-                                primaryTypographyProps={{
-                                  fontSize: isMobile ? '0.875rem' : '1rem'
-                                }}
-                              />
+                              <ListItemText primary={loan} />
                             </ListItem>
                           ))}
                         </List>
@@ -647,5 +714,4 @@ const handleChange = (event, newValue) => {
   );
 }
 
-// Export al final del archivo
 export default Dashboard;
