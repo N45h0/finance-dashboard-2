@@ -80,27 +80,205 @@ const calculateLoans = {
       paid: _.sumBy(ownerLoans, loan => 
         (loan.paidInstallments || 0) * (loan.amount || 0)
       ),
-      remaining: _.sumBy(ownerLoans, loan => 
-        loan.currentBalance || (loan.capital - ((loan.paidInstallments || 0) * loan.amount))
-      ),
-      loans: ownerLoans,
-      monthlyPayment: _.sumBy(ownerLoans, 'amount')
-    }));
+import _ from 'lodash';
+import loans from '../data/loans';
+import services from '../data/services';
+
+// Utilidades de fecha mejoradas
+const dateUtils = {
+  addMonths: (date, months) => {
+    const newDate = new Date(date);
+    newDate.setMonth(newDate.getMonth() + months);
+    return newDate;
+  },
+  
+  getDaysDifference: (date1, date2) => {
+    return Math.floor((date2 - date1) / (1000 * 60 * 60 * 24));
   },
 
-  getOverdueLoans: () => {
+  calculateDaysOverdue: (nextPaymentDate) => {
+    if (!nextPaymentDate) return 0;
     const today = new Date();
-    return loans.filter(loan => {
-      if (loan.paidInstallments >= loan.installments) return false;
-      if (!loan.nextPaymentDate) return false;
-      return new Date(loan.nextPaymentDate) < today;
-    }).map(loan => ({
-      ...loan,
-      daysOverdue: dateUtils.getDaysDifference(new Date(loan.nextPaymentDate), today),
-      projectedLateFees: loan.moratory ? 
-        (loan.amount * (loan.moratory / 100) * 
-         dateUtils.getDaysDifference(new Date(loan.nextPaymentDate), today) / 30) : 0
-    }));
+    const paymentDate = new Date(nextPaymentDate);
+    return paymentDate < today ? dateUtils.getDaysDifference(paymentDate, today) : 0;
+  }
+};
+
+const calculateLoans = {
+  // Obtener capital total de préstamos
+  getTotalCapital: () => {
+    return _.sumBy(loans, 'capital') || 0;
+  },
+
+  // Obtener total pagado real basado en historial
+  getTotalPaid: () => {
+    return _.sumBy(loans, loan => 
+      _.sumBy(loan.paymentHistory, 'amount')
+    ) || 0;
+  },
+
+  // Obtener saldo restante actual
+  getRemainingBalance: () => {
+    return _.sumBy(loans, 'currentBalance') || 0;
+  },
+
+  // Calcular progreso de un préstamo específico
+  getProgress: (loan) => {
+    if (!loan?.installments || loan.installments === 0) return 0;
+    if (loan.status === 'completed') return 100;
+    return _.clamp((loan.paidInstallments / loan.installments) * 100, 0, 100);
+  },
+
+  // Calcular progreso general de todos los préstamos
+  getOverallProgress: () => {
+    const totalAmountToPay = _.sumBy(loans, 'totalAmountToPay');
+    const totalPaid = calculateLoans.getTotalPaid();
+    return totalAmountToPay > 0 ? 
+      _.clamp((totalPaid / totalAmountToPay) * 100, 0, 100) : 0;
+  },
+
+  // Calcular pagos proyectados con moras
+  getProjectedPayments: () => {
+    const today = new Date();
+    
+    return loans
+      .filter(loan => loan.status === 'active')
+      .map(loan => {
+        if (loan.remainingInstallments === 0) {
+          return {
+            loanId: loan.id,
+            loanName: loan.name,
+            payments: [],
+            totalProjected: 0
+          };
+        }
+
+        let projectedDate = loan.nextPaymentDate ? 
+          new Date(loan.nextPaymentDate) : today;
+
+        const payments = Array.from(
+          { length: loan.remainingInstallments }, 
+          (_, index) => {
+            const paymentDate = dateUtils.addMonths(projectedDate, index);
+            const isOverdue = paymentDate < today;
+            const daysOverdue = isOverdue ? 
+              dateUtils.getDaysDifference(paymentDate, today) : 0;
+
+            const lateFee = isOverdue && loan.moratory ? 
+              (loan.amount * (loan.moratory / 100) * daysOverdue / 30) : 0;
+
+            return {
+              date: paymentDate,
+              amount: loan.amount,
+              installmentNumber: loan.paidInstallments + index + 1,
+              isOverdue,
+              daysOverdue,
+              lateFee,
+              totalAmount: loan.amount + lateFee
+            };
+          }
+        );
+
+        return {
+          loanId: loan.id,
+          loanName: loan.name,
+          owner: loan.owner,
+          payments,
+          totalProjected: _.sumBy(payments, 'totalAmount'),
+          hasOverduePayments: payments.some(p => p.isOverdue),
+          totalLateFees: _.sumBy(payments, 'lateFee')
+        };
+    });
+  },
+
+  // Obtener préstamos por titular con totales
+  getLoansByOwner: () => {
+    const groupedLoans = _.groupBy(loans, 'owner');
+    
+    return _.mapValues(groupedLoans, ownerLoans => {
+      const activeLoans = ownerLoans.filter(loan => loan.status === 'active');
+      const completedLoans = ownerLoans.filter(loan => loan.status === 'completed');
+      const overdueLoans = activeLoans.filter(loan => loan.isOverdue);
+
+      return {
+        // Totales generales
+        totalCapital: _.sumBy(ownerLoans, 'capital'),
+        totalAmountToPay: _.sumBy(ownerLoans, 'totalAmountToPay'),
+        currentBalance: _.sumBy(ownerLoans, 'currentBalance'),
+        totalPaid: _.sumBy(ownerLoans, loan => 
+          _.sumBy(loan.paymentHistory, 'amount')),
+
+        // Métricas de préstamos
+        activeLoansCount: activeLoans.length,
+        completedLoansCount: completedLoans.length,
+        overdueLoansCount: overdueLoans.length,
+
+        // Pagos mensuales
+        monthlyPayment: _.sumBy(activeLoans, 'amount'),
+
+        // Moras y vencimientos
+        totalOverdueAmount: _.sumBy(overdueLoans, 'amount'),
+        projectedLateFees: _.sumBy(overdueLoans, loan => {
+          const daysOverdue = dateUtils.calculateDaysOverdue(loan.nextPaymentDate);
+          return loan.moratory ? 
+            (loan.amount * (loan.moratory / 100) * daysOverdue / 30) : 0;
+        }),
+
+        // Referencias a préstamos
+        loans: ownerLoans,
+        activeLoans,
+        completedLoans,
+        overdueLoans
+      };
+    });
+  },
+
+  // Obtener préstamos vencidos con detalles
+  getOverdueLoans: () => {
+    return loans
+      .filter(loan => loan.status === 'active' && loan.isOverdue)
+      .map(loan => {
+        const daysOverdue = dateUtils.calculateDaysOverdue(loan.nextPaymentDate);
+        const lateFee = loan.moratory ? 
+          (loan.amount * (loan.moratory / 100) * daysOverdue / 30) : 0;
+
+        return {
+          ...loan,
+          daysOverdue,
+          lateFee,
+          totalDue: loan.amount + lateFee,
+          paymentsPending: loan.remainingInstallments,
+          projectedTotalWithFees: loan.currentBalance + 
+            (loan.remainingInstallments * lateFee)
+        };
+      });
+  },
+
+  // Nueva función para obtener estadísticas generales
+  getGeneralStats: () => {
+    const activeLoans = loans.filter(loan => loan.status === 'active');
+    const completedLoans = loans.filter(loan => loan.status === 'completed');
+    const overdueLoans = loans.filter(loan => loan.isOverdue);
+
+    return {
+      totalLoansCount: loans.length,
+      activeLoansCount: activeLoans.length,
+      completedLoansCount: completedLoans.length,
+      overdueLoansCount: overdueLoans.length,
+
+      totalCapital: calculateLoans.getTotalCapital(),
+      totalPaid: calculateLoans.getTotalPaid(),
+      totalRemaining: calculateLoans.getRemainingBalance(),
+
+      totalAmountToPay: _.sumBy(loans, 'totalAmountToPay'),
+      totalMonthlyPayment: _.sumBy(activeLoans, 'amount'),
+      
+      projectedLateFees: _.sumBy(overdueLoans, loan => {
+        const daysOverdue = dateUtils.calculateDaysOverdue(loan.nextPaymentDate);
+        return loan.moratory ? 
+          (loan.amount * (loan.moratory / 100) * daysOverdue / 30) : 0;
+      })
+    };
   }
 };
 
