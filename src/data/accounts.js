@@ -175,32 +175,37 @@ const accounts = [
 const validateAccounts = () => {
   accounts.forEach(account => {
     // Verificar que los totales coincidan 
-    const calculatedServicesOutflow = (account.services || [])
-      .reduce((sum, service) => sum + (service.amount || 0), 0);
+    const calculatedServicesOutflow = roundToTwo(
+      (account.services || [])
+        .reduce((sum, service) => sum + (service.amount || 0), 0)
+    );
     
-    const calculatedLoansOutflow = (account.linkedLoans || [])
-      .reduce((sum, loan) => sum + (loan.amount || 0), 0);
+    const calculatedLoansOutflow = roundToTwo(
+      (account.linkedLoans || [])
+        .reduce((sum, loan) => sum + (loan.amount || 0), 0)
+    );
 
-    if (calculatedServicesOutflow !== account.monthlyOutflow.services) {
+    if (!areNumbersEqual(calculatedServicesOutflow, account.monthlyOutflow.services)) {
       console.warn(`Discrepancia en servicios de cuenta ${account.id}:`,
         `Calculado: ${calculatedServicesOutflow},`,
         `Registrado: ${account.monthlyOutflow.services}`);
     }
 
-    if (calculatedLoansOutflow !== account.monthlyOutflow.loans) {
+    if (!areNumbersEqual(calculatedLoansOutflow, account.monthlyOutflow.loans)) {
       console.warn(`Discrepancia en préstamos de cuenta ${account.id}:`,
-        `Calculado: ${calculatedLoansOutflow},`, 
+        `Calculado: ${calculatedLoansOutflow},`,
         `Registrado: ${account.monthlyOutflow.loans}`);
     }
 
-    // Verificar coherencia de ingresos
-    const calculatedInflow = (account.income || [])
-      .reduce((sum, income) => sum + (income.estimatedAmount || 0), 0);
+    const calculatedInflow = roundToTwo(
+      (account.income || [])
+        .reduce((sum, income) => sum + (income.estimatedAmount || 0), 0)
+    );
 
-    if (calculatedInflow !== account.monthlyInflow.estimated) {
+    if (!areNumbersEqual(calculatedInflow, account.monthlyInflow.estimated)) {
       console.warn(`Discrepancia en ingresos de cuenta ${account.id}:`,
         `Calculado: ${calculatedInflow},`,
-        `Registrado: ${account.monthlyInflow.estimated}`); 
+        `Registrado: ${account.monthlyInflow.estimated}`);
     }
   });
 };

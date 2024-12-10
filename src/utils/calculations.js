@@ -10,7 +10,16 @@ const formatMoney = (amount) => {
 
 // Función de redondeo
 const roundToTwo = (num) => {
-  return Number(Math.round(num + 'e+2') + 'e-2');
+  // Aseguramos que el número sea válido
+  if (typeof num !== 'number' || isNaN(num)) return 0;
+  // Usamos una técnica más precisa de redondeo
+  return +(Math.round(num + "e+2") + "e-2");
+};
+
+// función de utilidad para comparaciones
+const areNumbersEqual = (num1, num2, precision = 2) => {
+  const factor = Math.pow(10, precision);
+  return Math.round(num1 * factor) === Math.round(num2 * factor);
 };
 
 // Utilidades de fecha mejoradas
