@@ -59,7 +59,7 @@ const FileUploader = () => {
           // Usa configuración simplificada
           langPath: 'https://raw.githubusercontent.com/naptha/tessdata/gh-pages/4.0.0',
         });
-  
+
         try {
           // Carga los idiomas uno por uno
           await newWorker.loadLanguage('eng');
