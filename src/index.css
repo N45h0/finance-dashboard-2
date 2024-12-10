@@ -1,24 +1,18 @@
 /* Base styles */
-/* Prevenir FOUC */
-@font-face {
-  font-family: 'Ubuntu';
-  font-style: normal;
-  font-weight: 400;
-  font-display: swap;
-  src: local('Ubuntu Regular'), local('Ubuntu-Regular'), url('/static/media/Ubuntu-Regular.woff2') format('woff2');
-}
-
-/* Estilos críticos */
-:root {
-  --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Ubuntu, 'Helvetica Neue', sans-serif;
-}
-
 body {
   margin: 0;
-  font-family: var(--font-sans);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    sans-serif;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
   background-color: #f5f5f5;
   color: #333;
+}
+
+/* Critical render styles */
+html {
+  visibility: visible;
+  opacity: 1;
 }
 
 code {
