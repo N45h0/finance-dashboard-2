@@ -2,14 +2,45 @@
 <html lang="es">
   <head>
     <meta charset="utf-8" />
-    <link rel="preload" as="style" href="/static/css/main.chunk.css">
-    <link rel="preload" as="font" href="/static/media/Ubuntu-Regular.woff2" crossorigin>
     <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#000000" />
     <meta name="description" content="Dashboard Financiero Personal" />
     <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
     <title>Dashboard Financiero</title>
+      <!-- Otras etiquetas meta y título -->
+  
+  <!-- Precarga crítica de recursos -->
+  <link 
+  rel="preload" 
+  href="/static/css/main.chunk.css" 
+  as="style" 
+  onload="this.onload=null;this.rel='stylesheet'"
+>
+
+<!-- Precarga de fuente -->
+<link 
+  rel="preload"
+  as="font"
+  type="font/woff2"
+  crossorigin
+  href="/static/media/Ubuntu-Regular.woff2"
+>
+
+  <!-- Estilo crítico inline para prevenir FOUC -->
+  <style>
+    body {
+      visibility: hidden;
+    }
+    .js body {
+      visibility: visible;
+    }
+  </style>
+  
+  <!-- Script de detección de JS -->
+  <script>
+    document.documentElement.className = document.documentElement.className.replace('no-js', 'js');
+  </script>
   </head>
   <body>
     <div id="root"></div>
