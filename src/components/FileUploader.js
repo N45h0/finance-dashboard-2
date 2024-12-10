@@ -34,46 +34,54 @@ const FileUploader = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [progressMap, setProgressMap] = useState({});
   const [error, setError] = useState(null);
+  const [initProgress, setInitProgress] = useState(0);
 
   useEffect(() => {
     const initWorker = async () => {
       try {
-        // Usamos CDN para los archivos necesarios
         const newWorker = await createWorker({
           logger: progress => {
-            if (progress.status === 'recognizing text') {
+            console.log('OCR Progress:', progress);
+            if (progress.status === 'loading tesseract core') {
+              setInitProgress(30);
+            } else if (progress.status === 'loading language traineddata') {
+              setInitProgress(60);
+            } else if (progress.status === 'initializing api') {
+              setInitProgress(90);
+            } else if (progress.status === 'recognizing text') {
+              setInitProgress(100);
               setProgressMap(prev => ({
                 ...prev,
                 ['general']: Math.floor(progress.progress * 100)
               }));
             }
           },
-          errorHandler: err => {
-            console.error('Tesseract Error:', err);
-            toast.error('Error en el procesamiento OCR');
-          },
-          // Configuración desde CDN
-          workerPath: 'https://cdn.jsdelivr.net/npm/tesseract.js@5.0.2/dist/worker.min.js',
-          langPath: 'https://tessdata.projectnaptha.com/4.0.0',
-          corePath: 'https://cdn.jsdelivr.net/npm/tesseract.js-core@5.0.0/tesseract-core.wasm.js'
+          // Usa configuración simplificada
+          langPath: 'https://raw.githubusercontent.com/naptha/tessdata/gh-pages/4.0.0',
         });
-
-        // Cargar idiomas
-        await newWorker.loadLanguage('eng+spa');
-        await newWorker.initialize('eng+spa');
-        
-        setWorker(newWorker);
-        setIsWorkerReady(true);
-        toast.success('Sistema OCR inicializado correctamente');
+  
+        try {
+          // Carga los idiomas uno por uno
+          await newWorker.loadLanguage('eng');
+          await newWorker.loadLanguage('spa');
+          await newWorker.initialize('eng+spa');
+          
+          setWorker(newWorker);
+          setIsWorkerReady(true);
+          toast.success('Sistema OCR inicializado correctamente');
+        } catch (langError) {
+          console.error('Error loading languages:', langError);
+          throw new Error('Error al cargar idiomas OCR');
+        }
       } catch (error) {
-        console.error('Error inicializando Tesseract:', error);
+        console.error('Error initializing Tesseract:', error);
         setError('Error al inicializar el sistema OCR');
         toast.error('Error al inicializar el sistema OCR');
       }
     };
-
+  
     initWorker();
-
+  
     return () => {
       if (worker) {
         worker.terminate();
@@ -131,12 +139,10 @@ const FileUploader = () => {
     }
   
     try {
-      const { data: { text } } = await worker.recognize(file, {
-        lang: 'eng+spa',
-        tessedit_ocr_engine_mode: '3',
-        tessedit_pageseg_mode: '3',
-        tessjs_create_pdf: '0'
-      });
+      const { data: { text } } = await worker.recognize(file);
+      if (!text || text.trim().length === 0) {
+        throw new Error('No se pudo extraer texto de la imagen');
+      }
       return text;
     } catch (error) {
       console.error('Error en OCR:', error);
@@ -297,10 +303,15 @@ const handleUpload = async () => {
 
         {!isWorkerReady && (
           <Alert className="mb-4" icon={<AlertCircle className="w-4 h-4" />}>
-            <AlertTitle>Inicializando sistema OCR...</AlertTitle>
-            <Typography>Por favor, espere mientras se prepara el sistema.</Typography>
+           <AlertTitle>Inicializando sistema OCR... ({initProgress}%)</AlertTitle>
+           <LinearProgress 
+             variant="determinate" 
+              value={initProgress} 
+               sx={{ mt: 1 }}
+          />
+          <Typography>Por favor, espere mientras se prepara el sistema.</Typography>
           </Alert>
-        )}
+          )}
 
         <Box className="flex gap-4 mb-4">
           <Button
