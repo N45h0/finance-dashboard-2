@@ -51,7 +51,7 @@ const loans = [
   {
     id: 3,
     name: "BROU Dentista",
-    owner: "Yenni",
+    owner: "Ignacio",
     capital: 20000.00,
     installments: 12,
     amount: 1916.39,
