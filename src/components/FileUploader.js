@@ -38,6 +38,7 @@ const FileUploader = () => {
   useEffect(() => {
     const initWorker = async () => {
       try {
+        // Usamos CDN para los archivos necesarios
         const newWorker = await createWorker({
           logger: progress => {
             if (progress.status === 'recognizing text') {
@@ -47,8 +48,17 @@ const FileUploader = () => {
               }));
             }
           },
+          errorHandler: err => {
+            console.error('Tesseract Error:', err);
+            toast.error('Error en el procesamiento OCR');
+          },
+          // Configuración desde CDN
+          workerPath: 'https://cdn.jsdelivr.net/npm/tesseract.js@5.0.2/dist/worker.min.js',
+          langPath: 'https://tessdata.projectnaptha.com/4.0.0',
+          corePath: 'https://cdn.jsdelivr.net/npm/tesseract.js-core@5.0.0/tesseract-core.wasm.js'
         });
-  
+
+        // Cargar idiomas
         await newWorker.loadLanguage('eng+spa');
         await newWorker.initialize('eng+spa');
         
@@ -56,14 +66,14 @@ const FileUploader = () => {
         setIsWorkerReady(true);
         toast.success('Sistema OCR inicializado correctamente');
       } catch (error) {
-        console.error('Error initializing Tesseract:', error);
+        console.error('Error inicializando Tesseract:', error);
         setError('Error al inicializar el sistema OCR');
         toast.error('Error al inicializar el sistema OCR');
       }
     };
-  
+
     initWorker();
-  
+
     return () => {
       if (worker) {
         worker.terminate();
@@ -85,10 +95,31 @@ const FileUploader = () => {
         
         const page = await pdf.getPage(i);
         const content = await page.getTextContent();
-        text += content.items.map(item => item.str).join(' ');
+        const pageText = content.items.map(item => item.str).join(' ');
+        
+        // Si la página no tiene texto, podría ser un PDF escaneado
+        if (!pageText.trim()) {
+          // Obtener la página como imagen y procesarla con Tesseract
+          const viewport = page.getViewport({ scale: 2.0 }); // Escala mayor para mejor calidad
+          const canvas = document.createElement('canvas');
+          const context = canvas.getContext('2d');
+          canvas.height = viewport.height;
+          canvas.width = viewport.width;
+          
+          await page.render({
+            canvasContext: context,
+            viewport: viewport
+          }).promise;
+          
+          // Convertir canvas a blob y procesar con Tesseract
+          const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+          pageText = await processImage(blob);
+        }
+        
+        text += pageText + ' ';
       }
       
-      return text;
+      return text.trim();
     } catch (error) {
       throw new Error(`Error al procesar PDF: ${error.message}`);
     }
@@ -98,11 +129,17 @@ const FileUploader = () => {
     if (!worker || !isWorkerReady) {
       throw new Error('El sistema OCR no está listo');
     }
-
+  
     try {
-      const { data: { text } } = await worker.recognize(file);
+      const { data: { text } } = await worker.recognize(file, {
+        lang: 'eng+spa',
+        tessedit_ocr_engine_mode: '3',
+        tessedit_pageseg_mode: '3',
+        tessjs_create_pdf: '0'
+      });
       return text;
     } catch (error) {
+      console.error('Error en OCR:', error);
       throw new Error(`Error al procesar imagen: ${error.message}`);
     }
   };
