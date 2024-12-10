@@ -2,7 +2,7 @@ const loans = [
   {
     id: 1,
     name: "Refinanciamiento Antel",
-    owner: "LAFIO",
+    owner: "IGNACIO",
     capital: 4941.19,
     installments: 9,
     amount: 549.02,
@@ -30,7 +30,7 @@ const loans = [
   {
     id: 2,
     name: "BROU Viaje Argentina",
-    owner: "LAFIO",
+    owner: "IGNACIO",
     capital: 12000.00,
     installments: 10,
     amount: 1411.58,
@@ -51,7 +51,7 @@ const loans = [
   {
     id: 3,
     name: "BROU Dentista",
-    owner: "Lovia",
+    owner: "Yenni",
     capital: 20000.00,
     installments: 12,
     amount: 1916.39,
@@ -93,7 +93,7 @@ const loans = [
   {
     id: 4,
     name: "BROU Buenos Aires",
-    owner: "Lovia",
+    owner: "Yenni",
     capital: 10000.00,
     installments: 6,
     amount: 1801.64,
@@ -114,7 +114,7 @@ const loans = [
   {
     id: 5,
     name: "Adelanto Sueldo BROU",
-    owner: "Lovia",
+    owner: "Yenni",
     capital: 4800.00,
     installments: 1,
     amount: 4831.57,
