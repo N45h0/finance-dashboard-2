@@ -37,6 +37,7 @@ import FileUploader from './components/FileUploader';
 import loans from './data/loans';
 import services from './data/services';
 import accounts from './data/accounts';
+console.log('Accounts imported:', accounts); // Añadir aquí
 import { calculateLoans, calculateServices } from './utils/calculations';
 import PaymentHistory from './components/PaymentHistory';
 import formatters from './utils/formatters';
@@ -151,7 +152,7 @@ function Dashboard() {
     const loadData = async () => {
       try {
         setIsLoading(true);
-
+        console.log('Loading data, accounts:', accounts); // Añadir aquí
         // Calcular resumen de préstamos
         const generalStats = calculateLoans.getGeneralStats();
         setLoanSummary({
@@ -626,6 +627,7 @@ function Dashboard() {
 
       {/* Panel de Cuentas */}
       <TabPanel value={value} index={3}>
+      {console.log('Rendering accounts tab, accounts:', accounts)} // Añadir aquí
         <Grid container spacing={responsiveStyles.grid.spacing}>
         {Array.isArray(accounts) && accounts.map((account) => (
             <Grid item xs={12} md={isMobile ? 12 : 4} key={account.id}>

@@ -269,4 +269,4 @@ const AccountsTab = () => {
   );  
 };
 
-export default AccountsTab;
+export default accounts;
