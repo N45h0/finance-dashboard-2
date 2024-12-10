@@ -629,10 +629,9 @@ function Dashboard() {
       {/* Panel de Cuentas */}
       <TabPanel value={value} index={3}>
       {console.log('Rendering accounts tab, accounts:', accounts)} // Añadir aquí
-        <Grid container spacing={responsiveStyles.grid.spacing}>
-        {Array.isArray(accounts) && accounts.map((account) => (
-            <Grid item xs={12} md={isMobile ? 12 : 4} key={account.id}>
-              <Card>
+      <Grid container spacing={responsiveStyles.grid.spacing}>
+      {accounts.map((account) => (
+      <Grid item xs={12} md={isMobile ? 12 : 4} key={account.id}>              <Card>
                 <CardContent sx={responsiveStyles.card}>
                   <Typography variant={isMobile ? "subtitle1" : "h6"}>
                     {account.name} ({account.id})

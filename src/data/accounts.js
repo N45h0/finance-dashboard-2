@@ -171,7 +171,7 @@ const accounts = [
   }
 ];
 
-// Función para validar la coherencia de los datos
+// Función de validación
 const validateAccounts = () => {
   accounts.forEach(account => {
     // Verificar que los totales coincidan 
@@ -207,68 +207,5 @@ const validateAccounts = () => {
 
 // Ejecutar validación al importar
 validateAccounts();
-
-// Componente AccountsTab
-const AccountsTab = () => {
-  const [error, setError] = useState(null);
-  const [accounts, setAccounts] = useState([]);
-
-  useEffect(() => {
-    try {
-      // Importar cuentas dinámicamente para evitar problemas de carga inicial
-      import('../data/accounts').then(module => {
-        setAccounts(module.default);
-      }).catch(err => {
-        setError('Error loading accounts data');
-        console.error(err);
-      });
-    } catch (err) {
-      setError('Error initializing accounts view'); 
-      console.error(err);
-    }
-  }, []);
-
-  if (error) {
-    return (
-      <Alert severity="error" sx={{ m: 2 }}>
-        {error}        
-      </Alert>
-    );
-  }
-
-  return (
-    <Grid container spacing={3}>
-      {accounts.map((account) => (
-        <Grid item xs={12} md={4} key={account.id}>
-          <Card>
-            <CardContent>
-              <Typography variant="h6" gutterBottom>
-                {account.name}
-              </Typography>
-              <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                <CreditCard size={20} className="mr-2" />
-                <Typography>{account.type}</Typography>
-              </Box>
-              {account.income && (
-                <List>
-                  {account.income.map((income, idx) => (
-                    <ListItem key={idx}>
-                      <ListItemText 
-                        primary={income.source}
-                        secondary={formatters.currency(income.estimatedAmount)} 
-                      />
-                    </ListItem>
-                  ))}
-                </List>
-              )}
-            </CardContent>
-          </Card>
-        </Grid>
-      ))}
-    </Grid>
-  );  
-};
-// Ejecutar validación al importar
-AccountsTab();
 
 export default accounts;
