@@ -268,5 +268,7 @@ const AccountsTab = () => {
     </Grid>
   );  
 };
+// Ejecutar validación al importar
+AccountsTab();
 
 export default accounts;
