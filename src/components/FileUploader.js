@@ -57,7 +57,7 @@ const FileUploader = () => {
             }
           },
           // Usa configuración simplificada
-          langPath: 'https://raw.githubusercontent.com/tesseract-ocr/tessconfigs/tree/main',
+          langPath: 'https://raw.githubusercontent.com/tesseract-ocr/tessdata',
         });
 
         try {

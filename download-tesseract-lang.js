@@ -3,7 +3,7 @@ const fs = require('fs');
 const path = require('path');
 
 const languages = ['eng', 'spa'];
-const baseUrl = 'https://raw.githubusercontent.com/tesseract-ocr/tessconfigs/tree/main';
+const baseUrl = 'https://raw.githubusercontent.com/tesseract-ocr/tessdata/';
 const outputDir = path.join(process.cwd(), 'public', 'tesseract', 'lang-data');
 
 if (!fs.existsSync(outputDir)) {
