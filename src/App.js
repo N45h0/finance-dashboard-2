@@ -628,86 +628,97 @@ function Dashboard() {
 
       {/* Panel de Cuentas */}
       <TabPanel value={value} index={3}>
-      {console.log('Rendering accounts tab, accounts:', accounts)} // Añadir aquí
-      <Grid container spacing={responsiveStyles.grid.spacing}>
-      {accounts.map((account) => (
-      <Grid item xs={12} md={isMobile ? 12 : 4} key={account.id}>              <Card>
-                <CardContent sx={responsiveStyles.card}>
-                  <Typography variant={isMobile ? "subtitle1" : "h6"}>
-                    {account.name} ({account.id})
-                  </Typography>
-                  <Box sx={{ mt: 2 }}>
-                    <Typography sx={{ 
-                      display: 'flex', 
-                      alignItems: 'center', 
-                      gap: 1,
-                      fontSize: isMobile ? '0.875rem' : '1rem'
-                    }}>
-                      <CreditCard size={isMobile ? 16 : 20} />
-                      {account.type}
-                      {account.expiry && ` (vence ${account.expiry})`}
-                    </Typography>
-                    
-                    {account.income && (
-                      <Box sx={{ mt: 2 }}>
-                        <Typography variant="subtitle2">Ingresos:</Typography>
-                        <List dense={isMobile}>
-                          {account.income.map((income, idx) => (
-                            <ListItem key={idx}>
-                              <ListItemText 
-                                primary={income.source}
-                                secondary={formatters.currency(income.estimatedAmount)}
-                              />
-                            </ListItem>
-                          ))}
-                        </List>
-                      </Box>
-                    )}
+  <Grid container spacing={responsiveStyles.grid.spacing}>
+    {accounts && accounts.map((account) => (
+      <Grid item xs={12} md={isMobile ? 12 : 4} key={account.id}>
+        <Card>
+          <CardContent sx={responsiveStyles.card}>
+            <Typography variant={isMobile ? "subtitle1" : "h6"}>
+              {account.name} ({account.id})
+            </Typography>
+            <Box sx={{ mt: 2 }}>
+              <Typography sx={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                gap: 1,
+                fontSize: isMobile ? '0.875rem' : '1rem'
+              }}>
+                <CreditCard size={isMobile ? 16 : 20} />
+                {account.type}
+                {account.expiry && ` (vence ${account.expiry})`}
+              </Typography>
+              
+              {/* Ingresos */}
+              {account.income && Array.isArray(account.income) && (
+                <Box sx={{ mt: 2 }}>
+                  <Typography variant="subtitle2">Ingresos:</Typography>
+                  <List dense={isMobile}>
+                    {account.income.map((income, idx) => (
+                      <ListItem key={idx}>
+                        <ListItemText 
+                          primary={income.source}
+                          secondary={formatters.currency(income.estimatedAmount)}
+                        />
+                      </ListItem>
+                    ))}
+                  </List>
+                </Box>
+              )}
 
-                    {account.services && account.services.length > 0 && (
-                      <Box sx={{ mt: 2 }}>
-                        <Typography variant="subtitle2">Servicios asociados:</Typography>
-                        <List dense={isMobile}>
-                          {account.services.map((service, idx) => (
-                            <ListItem key={idx}>
-                              <ListItemText primary={service} />
-                            </ListItem>
-                          ))}
-                        </List>
-                      </Box>
-                    )}
+              {/* Servicios */}
+              {account.services && Array.isArray(account.services) && account.services.length > 0 && (
+                <Box sx={{ mt: 2 }}>
+                  <Typography variant="subtitle2">Servicios asociados:</Typography>
+                  <List dense={isMobile}>
+                    {account.services.map((service, idx) => (
+                      <ListItem key={idx}>
+                        <ListItemText 
+                          primary={service.name}
+                          secondary={formatters.currency(service.amount)}
+                        />
+                      </ListItem>
+                    ))}
+                  </List>
+                </Box>
+              )}
 
-                    {account.linkedLoans && account.linkedLoans.length > 0 && (
-                      <Box sx={{ mt: 2 }}>
-                        <Typography variant="subtitle2">Préstamos vinculados:</Typography>
-                        <List dense={isMobile}>
-                          {account.linkedLoans.map((loan, idx) => (
-                            <ListItem key={idx}>
-                              <ListItemText primary={loan} />
-                            </ListItem>
-                          ))}
-                        </List>
-                      </Box>
-                    )}
+              {/* Préstamos vinculados */}
+              {account.linkedLoans && Array.isArray(account.linkedLoans) && account.linkedLoans.length > 0 && (
+                <Box sx={{ mt: 2 }}>
+                  <Typography variant="subtitle2">Préstamos vinculados:</Typography>
+                  <List dense={isMobile}>
+                    {account.linkedLoans.map((loan, idx) => (
+                      <ListItem key={idx}>
+                        <ListItemText 
+                          primary={loan.name}
+                          secondary={formatters.currency(loan.amount)}
+                        />
+                      </ListItem>
+                    ))}
+                  </List>
+                </Box>
+              )}
 
-                    {account.backup && (
-                      <Typography 
-                        color="textSecondary" 
-                        sx={{ 
-                          mt: 2,
-                          fontSize: isMobile ? '0.875rem' : '1rem'
-                        }}
-                      >
-                        Tarjeta de respaldo
-                      </Typography>
-                    )}
-                  </Box>
-                </CardContent>
-              </Card>
-            </Grid>
-          ))}
-        </Grid>
-      </TabPanel>
+              {/* Backup indicator */}
+              {account.backup && (
+                <Typography 
+                  color="textSecondary" 
+                  sx={{ 
+                    mt: 2,
+                    fontSize: isMobile ? '0.875rem' : '1rem'
+                  }}
+                >
+                  Tarjeta de respaldo
+                </Typography>
+              )}
+            </Box>
+          </CardContent>
+        </Card>
+      </Grid>
+    ))}
+  </Grid>
+</TabPanel>
+
           
       {/* Panel de Carga de Archivos */}
       <TabPanel value={value} index={4}>
