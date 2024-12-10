@@ -2,6 +2,17 @@ import _ from 'lodash';
 import loans from '../data/loans';
 import services from '../data/services';
 
+// Utilidad para manejar específicamente las cantidades monetarias
+const formatMoney = (amount) => {
+  const rounded = roundToTwo(amount);
+  return rounded === 0 ? 0 : rounded;
+};
+
+// Función de redondeo
+const roundToTwo = (num) => {
+  return Number(Math.round(num + 'e+2') + 'e-2');
+};
+
 // Utilidades de fecha mejoradas
 const dateUtils = {
   addMonths: (date, months) => {
@@ -24,17 +35,17 @@ const dateUtils = {
 
 const calculateLoans = {
   getTotalCapital: () => {
-    return _.sumBy(loans, 'capital') || 0;
+    return roundToTwo(_.sumBy(loans, 'capital') || 0);
   },
 
   getTotalPaid: () => {
-    return _.sumBy(loans, loan => 
+    return roundToTwo(_.sumBy(loans, loan => 
       _.sumBy(loan.paymentHistory, 'amount')
-    ) || 0;
+    ) || 0);
   },
 
   getRemainingBalance: () => {
-    return _.sumBy(loans, 'currentBalance') || 0;
+    return roundToTwo(_.sumBy(loans, 'currentBalance') || 0);
   },
 
   getProgress: (loan) => {
@@ -182,13 +193,13 @@ const calculateLoans = {
 const calculateServices = {
   getMonthlyTotal: () => {
     try {
-      return _.sumBy(services, category => 
+      return roundToTwo(_.sumBy(services, category => 
         _.sumBy(category.items, service => {
           if (!service?.price?.uyuEquivalent) return 0;
           const amount = service.price.uyuEquivalent;
-          return service.billingCycle === 'monthly' ? amount : amount / 12;
+          return service.billingCycle === 'monthly' ? amount : roundToTwo(amount / 12);
         })
-      ) || 0;
+      ) || 0);
     } catch (error) {
       console.error('Error calculating monthly total:', error);
       return 0;
