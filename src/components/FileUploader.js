@@ -57,7 +57,7 @@ const FileUploader = () => {
             }
           },
           // Usa configuración simplificada
-          langPath: 'https://raw.githubusercontent.com/naptha/tessdata/gh-pages/4.0.0',
+          langPath: 'https://raw.githubusercontent.com/tesseract-ocr/tessconfigs/tree/main',
         });
 
         try {
