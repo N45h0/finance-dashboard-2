@@ -2,7 +2,7 @@ const loans = [
   {
     id: 1,
     name: "Refinanciamiento Antel",
-    owner: "IGNACIO",
+    owner: "Ignacio",
     capital: 4941.19,
     installments: 9,
     amount: 549.02,
@@ -30,7 +30,7 @@ const loans = [
   {
     id: 2,
     name: "BROU Viaje Argentina",
-    owner: "IGNACIO",
+    owner: "Ignacio",
     capital: 12000.00,
     installments: 10,
     amount: 1411.58,
