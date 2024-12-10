@@ -330,4 +330,4 @@ const calculateServices = {
   }
 };
 
-export { calculateLoans, calculateServices, dateUtils };
+export { calculateLoans, calculateServices, dateUtils, roundToTwo, areNumbersEqual };

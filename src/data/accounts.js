@@ -12,6 +12,7 @@ import {
 } from '@mui/material';
 import { CreditCard } from 'lucide-react';
 import formatters from '../utils/formatters';
+import { roundToTwo, areNumbersEqual } from '../utils/calculations';
 
 const accounts = [
   {
