@@ -153,6 +153,7 @@ function Dashboard() {
       try {
         setIsLoading(true);
         console.log('Loading data, accounts:', accounts); // Añadir aquí
+
         // Calcular resumen de préstamos
         const generalStats = calculateLoans.getGeneralStats();
         setLoanSummary({
