@@ -61,20 +61,78 @@ const formatters = {
     }
   },
 
-  // Formateo de porcentajes
+  // Formateo de porcentajes que maneja el progreso
   percentage: (value, decimals = 1) => {
     try {
+      // Asegurar que el valor esté dentro de los límites 0-100
+      const normalizedValue = Math.min(100, Math.max(0, value));
       return new Intl.NumberFormat('es-UY', {
         style: 'percent',
         minimumFractionDigits: decimals,
         maximumFractionDigits: decimals
-      }).format(value / 100);
+      }).format(normalizedValue / 100);
     } catch (error) {
       console.warn('Error formatting percentage:', error);
       return `${value.toFixed(decimals)}%`;
     }
   },
 
+    // Formateo específico para progreso
+  progress: (value, options = {}) => {
+    try {
+      const {
+        showDecimals = true,
+        suffix = '%'
+      } = options;
+
+      const normalizedValue = Math.min(100, Math.max(0, parseFloat(value)));
+      
+      if (showDecimals) {
+        return `${normalizedValue.toFixed(1)}${suffix}`;
+      }
+      return `${Math.round(normalizedValue)}${suffix}`;
+    } catch (error) {
+      console.warn('Error formatting progress:', error);
+      return `0${suffix}`;
+    }
+  },
+
+    // Formateo de tiempo relativo para días restantes
+  remainingDays: (days) => {
+    try {
+      if (!days && days !== 0) return 'No especificado';
+      
+      const rtf = new Intl.RelativeTimeFormat('es', { numeric: 'auto' });
+      
+      if (days === 0) return 'Hoy';
+      if (days === 1) return 'Mañana';
+      if (days < 0) return rtf.format(days, 'day');
+      
+      // Para días futuros, usar formato más detallado
+      if (days > 365) {
+        const years = Math.floor(days / 365);
+        const remainingDays = days % 365;
+        if (remainingDays === 0) {
+          return rtf.format(years, 'year');
+        }
+        return `${years} año${years !== 1 ? 's' : ''} y ${remainingDays} día${remainingDays !== 1 ? 's' : ''}`;
+      }
+      
+      if (days > 30) {
+        const months = Math.floor(days / 30);
+        const remainingDays = days % 30;
+        if (remainingDays === 0) {
+          return rtf.format(months, 'month');
+        }
+        return `${months} mes${months !== 1 ? 'es' : ''} y ${remainingDays} día${remainingDays !== 1 ? 's' : ''}`;
+      }
+      
+      return rtf.format(days, 'day');
+    } catch (error) {
+      console.warn('Error formatting remaining days:', error);
+      return `${days} días`;
+    }
+  },
   // Formateo de métodos de pago
   paymentMethod: (method) => {
     const methods = {
@@ -89,16 +147,46 @@ const formatters = {
   },
 
   // Formateo de ciclos de facturación
-  billingCycle: (cycle) => {
+  billingCycle: (cycle, { capitalize = false } = {}) => {
     const cycles = {
-      'monthly': 'Mensual',
-      'annual': 'Anual',
-      'quarterly': 'Trimestral',
-      'bimonthly': 'Bimestral',
-      'weekly': 'Semanal'
+      'monthly': 'mensual',
+      'annual': 'anual',
+      'quarterly': 'trimestral',
+      'bimonthly': 'bimestral',
+      'weekly': 'semanal'
     };
-    return cycles[cycle] || cycle;
+
+    try {
+      const formatted = cycles[cycle] || cycle;
+      return capitalize 
+        ? formatted.charAt(0).toUpperCase() + formatted.slice(1) 
+        : formatted;
+    } catch (error) {
+      console.warn('Error formatting billing cycle:', error);
+      return cycle;
+    }
   },
+
+    // Formateo para estado de contrato
+  contractStatus: (contract) => {
+    try {
+      if (!contract) return 'Sin contrato';
+      
+      const now = new Date();
+      const startDate = new Date(contract.startDate);
+      const renewalDate = new Date(contract.renewalDate);
+      
+      if (now < startDate) return 'Pendiente de inicio';
+      if (now > renewalDate) return 'Vencido';
+      
+      const progress = ((now - startDate) / (renewalDate - startDate)) * 100;
+      return `${formatters.progress(progress)} completado`;
+    } catch (error) {
+      console.warn('Error formatting contract status:', error);
+      return 'Estado desconocido';
+    }
+  }
+};
 
   // Formateo de estados de pago
   paymentStatus: (status) => {
