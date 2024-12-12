@@ -77,7 +77,7 @@ const formatters = {
     }
   },
 
-    // Formateo específico para progreso
+  // Formateo específico para progreso
   progress: (value, options = {}) => {
     try {
       const {
@@ -97,7 +97,7 @@ const formatters = {
     }
   },
 
-    // Formateo de tiempo relativo para días restantes
+  // Formateo de tiempo relativo para días restantes
   remainingDays: (days) => {
     try {
       if (!days && days !== 0) return 'No especificado';
@@ -133,6 +133,7 @@ const formatters = {
       return `${days} días`;
     }
   },
+
   // Formateo de métodos de pago
   paymentMethod: (method) => {
     const methods = {
@@ -167,7 +168,7 @@ const formatters = {
     }
   },
 
-    // Formateo para estado de contrato
+  // Formateo para estado de contrato
   contractStatus: (contract) => {
     try {
       if (!contract) return 'Sin contrato';
@@ -185,8 +186,7 @@ const formatters = {
       console.warn('Error formatting contract status:', error);
       return 'Estado desconocido';
     }
-  }
-};
+  },
 
   // Formateo de estados de pago
   paymentStatus: (status) => {
