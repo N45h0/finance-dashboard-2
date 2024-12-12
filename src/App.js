@@ -66,6 +66,17 @@ const useWindowSize = () => {
   return windowSize;
 };
 
+// Helper para cálculos anualizados
+const getAnnualizedAmount = (service) => {
+  if (!service?.price?.uyuEquivalent) return 0;
+  
+  const amount = service.price.uyuEquivalent;
+  if (service.billingCycle === 'annual') {
+    return service.contract?.monthlyEquivalent || amount / 12;
+  }
+  return amount;
+};
+
 // Colores para gráficos
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
 
@@ -112,7 +123,6 @@ function Dashboard() {
   
   const [serviceSummary, setServiceSummary] = useState({
     monthlyTotal: 0,
-    annualizedCosts: [],
     upcomingPayments: [],
     serviceAlerts: [],
     contractStatus: []
@@ -170,7 +180,6 @@ function Dashboard() {
         // Calcular resumen de servicios
         setServiceSummary({
           monthlyTotal: calculateServices.getMonthlyTotal(),
-          annualizedCosts: calculateServices.getAnnualizedCosts(),
           upcomingPayments: calculateServices.getUpcomingPayments(),
           serviceAlerts: calculateServices.getServiceAlerts(),
           contractStatus: calculateServices.getContractStatus()
@@ -547,7 +556,7 @@ function Dashboard() {
                               <Typography variant="caption" color="text.secondary">
                                 {formatters.billingCycle(service.billingCycle, { capitalize: true })} 
                                 {' - '}
-                                {formatters.currency(service.contract?.monthlyEquivalent || service.price.uyuEquivalent / 12)} mensual
+                                {formatters.currency(getAnnualizedAmount(service))} mensual
                               </Typography>
                             )}
                             {service.contract && (
