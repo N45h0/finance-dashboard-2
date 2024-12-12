@@ -117,6 +117,7 @@ const services = [
       },
       {
         id: "GONE-2024",
+        id: "GONE-2024",
         name: "Google One",
         price: {
           amount: 20.00,
@@ -133,7 +134,8 @@ const services = [
           renewalDate: "2025-12-01",
           cancellationDate: null,
           duration: "12 months",
-          progress: 1,
+          // Calcular el progreso basado en días transcurridos desde startDate
+          progress: ((new Date() - new Date("2024-12-01")) / (365 * 24 * 60 * 60 * 1000)) * 100,
           isFixed: true,
           monthlyEquivalent: 73.96  // 887.56 / 12
         },
@@ -153,7 +155,7 @@ const services = [
         monthlyMetrics: {
           totalPaid: 887.56,
           nextPayment: {
-            date: "2025-12-01",
+            date: "2025-12-01",  // Corregido para reflejar el ciclo anual
             estimatedAmount: 887.56
           }
         }
