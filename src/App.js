@@ -543,19 +543,22 @@ function Dashboard() {
                             {service.price.currency === "USD" && 
                               ` (${formatters.currency(service.price.uyuEquivalent)})`}
                             <br />
-                            {formatters.billingCycle(service.billingCycle)}
+                            {service.billingCycle === 'annual' && (
+                              <Typography variant="caption" color="text.secondary">
+                                {formatters.billingCycle(service.billingCycle, { capitalize: true })} 
+                                {' - '}
+                                {formatters.currency(service.contract?.monthlyEquivalent || service.price.uyuEquivalent / 12)} mensual
+                              </Typography>
+                            )}
                             {service.contract && (
                               <>
                                 <LinearProgress 
                                   variant="determinate" 
                                   value={service.contract.progress} 
-                                  sx={{ 
-                                    mt: 1,
-                                    height: isMobile ? 4 : 6
-                                  }}
+                                  sx={{ mt: 1 }}
                                 />
                                 <Typography variant="caption" sx={{ display: 'block', textAlign: 'right' }}>
-                                  {service.contract.progress.toFixed(1)}%
+                                  {formatters.contractStatus(service.contract)}
                                 </Typography>
                               </>
                             )}
@@ -564,7 +567,7 @@ function Dashboard() {
                       />
                     </ListItem>
                   ))}
-                </List>
+  </List>
                 <Divider sx={{ my: 2 }} />
                 <Typography variant={isMobile ? "subtitle1" : "h6"}>
                   Total Mensual: {formatters.currency(serviceSummary.monthlyTotal)}
@@ -601,22 +604,26 @@ function Dashboard() {
                 <Typography variant={isMobile ? "subtitle1" : "h6"}>
                   Estado de Contratos
                 </Typography>
-                {serviceSummary.contractStatus.map((contract, index) => (
+                {contractStatus.map((contract, index) => (
                   <Box key={index} sx={{ mt: 2 }}>
                     <Typography variant="subtitle1">
                       {contract.name}
+                      {contract.billingCycle === 'annual' && 
+                        <Typography component="span" color="text.secondary">
+                          {' '}({formatters.billingCycle(contract.billingCycle)})
+                        </Typography>
+                      }
                     </Typography>
                     <LinearProgress 
                       variant="determinate"
                       value={contract.progress}
-                      sx={{ 
-                        mb: 1,
-                        height: isMobile ? 4 : 6
-                      }}
+                      sx={{ mb: 1 }}
                     /> 
                     <Typography variant="caption" sx={{ display: 'block', textAlign: 'right' }}>
-                      {contract.progress.toFixed(1)}%
-                      ({contract.daysUntilRenewal} días para renovación)
+                      {formatters.progress(contract.progress)}
+                      {' - '}
+                      {formatters.remainingDays(contract.daysUntilRenewal)}
+                      {' para renovación'}
                     </Typography>
                   </Box>
                 ))}
