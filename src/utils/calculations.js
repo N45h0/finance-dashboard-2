@@ -202,39 +202,64 @@ const calculateLoans = {
 const calculateServices = {
   getMonthlyTotal: () => {
     try {
-      return roundToTwo(_.sumBy(services, category => 
+      return _.sumBy(services, category => 
         _.sumBy(category.items, service => {
           if (!service?.price?.uyuEquivalent) return 0;
           const amount = service.price.uyuEquivalent;
-          return service.billingCycle === 'monthly' ? amount : roundToTwo(amount / 12);
+          // Ajustar el cálculo para servicios anuales
+          if (service.billingCycle === 'annual') {
+            return service.contract?.monthlyEquivalent || amount / 12;
+          }
+          return amount;
         })
-      ) || 0);
+      ) || 0;
     } catch (error) {
       console.error('Error calculating monthly total:', error);
       return 0;
     }
   },
 
-  getAnnualizedCosts: () => {
+  getContractStatus: () => {
     try {
-      return services.map(category => ({
-        category: category.category,
-        annualCost: _.sumBy(category.items, service => {
-          const monthlyAmount = service.price?.uyuEquivalent || 0;
-          return service.billingCycle === 'monthly' ? monthlyAmount * 12 : monthlyAmount;
-        }),
-        items: category.items.map(service => ({
-          name: service.name,
-          annualCost: service.billingCycle === 'monthly' ?
-            (service.price?.uyuEquivalent || 0) * 12 :
-            (service.price?.uyuEquivalent || 0),
-          monthlyCost: service.billingCycle === 'monthly' ?
-            (service.price?.uyuEquivalent || 0) :
-            (service.price?.uyuEquivalent || 0) / 12
-        }))
-      }));
+      return _.flatMap(services, category =>
+        _.chain(category.items)
+          .filter(service => service?.contract)
+          .map(service => {
+            const startDate = new Date(service.contract.startDate);
+            const renewalDate = new Date(service.contract.renewalDate);
+            const now = new Date();
+            
+            // Calcular progreso basado en el ciclo de facturación
+            let progress;
+            let daysTotal;
+            
+            if (service.billingCycle === 'annual') {
+              daysTotal = 365;
+            } else {
+              daysTotal = Math.ceil((renewalDate - startDate) / (1000 * 60 * 60 * 24));
+            }
+            
+            const daysElapsed = Math.max(0, Math.ceil((now - startDate) / (1000 * 60 * 60 * 24)));
+            progress = Math.min(100, (daysElapsed / daysTotal) * 100);
+            
+            const daysUntilRenewal = Math.max(0, Math.floor(
+              (renewalDate - now) / (1000 * 60 * 60 * 24)
+            ));
+
+            return {
+              name: service.name || 'Servicio sin nombre',
+              progress: progress,
+              daysUntilRenewal,
+              renewalDate: service.contract.renewalDate,
+              category: category.category || 'Sin categoría',
+              isExpiringSoon: daysUntilRenewal <= 30,
+              billingCycle: service.billingCycle
+            };
+          })
+          .value()
+      );
     } catch (error) {
-      console.error('Error calculating annualized costs:', error);
+      console.error('Error getting contract status:', error);
       return [];
     }
   },
@@ -244,8 +269,26 @@ const calculateServices = {
     const payments = [];
     
     try {
-      services.forEach(category => {
-        category.items.forEach(service => {
+      _.forEach(services, category => {
+        _.forEach(category.items, service => {
+          // Para servicios anuales, usar la fecha de renovación directamente
+          if (service.billingCycle === 'annual') {
+            if (service.contract?.renewalDate) {
+              const nextPayment = new Date(service.contract.renewalDate);
+              if (nextPayment > today) {
+                payments.push({
+                  service: service.name || 'Servicio sin nombre',
+                  date: nextPayment,
+                  amount: service.price?.uyuEquivalent || 0,
+                  category: category.category || 'Sin categoría',
+                  billingCycle: service.billingCycle
+                });
+              }
+            }
+            return;
+          }
+          
+          // Para servicios mensuales, mantener la lógica existente
           if (!service?.billingDay) return;
           
           const nextPayment = new Date(
@@ -259,13 +302,11 @@ const calculateServices = {
           }
           
           payments.push({
-            service: service.name,
+            service: service.name || 'Servicio sin nombre',
             date: nextPayment,
             amount: service.price?.uyuEquivalent || 0,
-            category: category.category,
-            billingCycle: service.billingCycle,
-            currency: service.price?.currency || 'UYU',
-            paymentMethod: service.paymentMethod
+            category: category.category || 'Sin categoría',
+            billingCycle: service.billingCycle || 'monthly'
           });
         });
       });
@@ -275,7 +316,8 @@ const calculateServices = {
       console.error('Error getting upcoming payments:', error);
       return [];
     }
-  },
+  }
+};
 
   getServiceAlerts: () => {
     const today = new Date();
