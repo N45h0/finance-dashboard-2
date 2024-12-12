@@ -133,7 +133,7 @@ const services = [
           renewalDate: "2025-12-01",
           cancellationDate: null,
           duration: "12 months",
-          progress: null,
+          progress: 1,
           isFixed: true,
           monthlyEquivalent: 73.96  // 887.56 / 12
         },
