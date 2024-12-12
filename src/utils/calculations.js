@@ -202,7 +202,7 @@ const calculateLoans = {
 const calculateServices = {
   getMonthlyTotal: () => {
     try {
-      return _.sumBy(services, category => 
+      return roundToTwo(_.sumBy(services, category => 
         _.sumBy(category.items, service => {
           if (!service?.price?.uyuEquivalent) return 0;
           const amount = service.price.uyuEquivalent;
@@ -212,14 +212,39 @@ const calculateServices = {
           }
           return amount;
         })
-      ) || 0;
+      ) || 0);
     } catch (error) {
       console.error('Error calculating monthly total:', error);
       return 0;
     }
   },
 
+  getServiceAlerts: () => {
+    const today = new Date();
+    return _.flatMap(services, category =>
+      category.items
+        .filter(service => service?.contract?.renewalDate)
+        .map(service => {
+          const renewalDate = new Date(service.contract.renewalDate);
+          const daysUntilRenewal = dateUtils.getDaysDifference(today, renewalDate);
+
+          return {
+            serviceName: service.name,
+            renewalDate,
+            daysUntilRenewal,
+            requiresAction: daysUntilRenewal <= 30,
+            estimatedRenewalCost: service.price?.uyuEquivalent || 0,
+            category: category.category,
+            currentProgress: service.contract.progress || 0
+          };
+        })
+        .filter(alert => alert.requiresAction)
+    );
+  },
+
   getContractStatus: () => {
+    const today = new Date();
+    
     try {
       return _.flatMap(services, category =>
         _.chain(category.items)
@@ -227,32 +252,27 @@ const calculateServices = {
           .map(service => {
             const startDate = new Date(service.contract.startDate);
             const renewalDate = new Date(service.contract.renewalDate);
-            const now = new Date();
+            const daysUntilRenewal = dateUtils.getDaysDifference(today, renewalDate);
             
             // Calcular progreso basado en el ciclo de facturación
-            let progress;
             let daysTotal;
-            
             if (service.billingCycle === 'annual') {
               daysTotal = 365;
             } else {
-              daysTotal = Math.ceil((renewalDate - startDate) / (1000 * 60 * 60 * 24));
+              daysTotal = dateUtils.getDaysDifference(startDate, renewalDate);
             }
             
-            const daysElapsed = Math.max(0, Math.ceil((now - startDate) / (1000 * 60 * 60 * 24)));
-            progress = Math.min(100, (daysElapsed / daysTotal) * 100);
-            
-            const daysUntilRenewal = Math.max(0, Math.floor(
-              (renewalDate - now) / (1000 * 60 * 60 * 24)
-            ));
+            const daysElapsed = Math.max(0, dateUtils.getDaysDifference(startDate, today));
+            const progress = Math.min(100, (daysElapsed / daysTotal) * 100);
 
             return {
-              name: service.name || 'Servicio sin nombre',
-              progress: progress,
+              name: service.name,
+              progress,
               daysUntilRenewal,
               renewalDate: service.contract.renewalDate,
-              category: category.category || 'Sin categoría',
+              category: category.category,
               isExpiringSoon: daysUntilRenewal <= 30,
+              estimatedRenewalCost: service.price?.uyuEquivalent || 0,
               billingCycle: service.billingCycle
             };
           })
@@ -314,59 +334,6 @@ const calculateServices = {
       return _.sortBy(payments, 'date');
     } catch (error) {
       console.error('Error getting upcoming payments:', error);
-      return [];
-    }
-  }
-};
-
-  getServiceAlerts: () => {
-    const today = new Date();
-    return _.flatMap(services, category =>
-      category.items
-        .filter(service => service?.contract?.renewalDate)
-        .map(service => {
-          const renewalDate = new Date(service.contract.renewalDate);
-          const daysUntilRenewal = dateUtils.getDaysDifference(today, renewalDate);
-
-          return {
-            serviceName: service.name,
-            renewalDate,
-            daysUntilRenewal,
-            requiresAction: daysUntilRenewal <= 30,
-            estimatedRenewalCost: service.price?.uyuEquivalent || 0,
-            category: category.category,
-            currentProgress: service.contract.progress || 0
-          };
-        })
-        .filter(alert => alert.requiresAction)
-    );
-  },
-
-  getContractStatus: () => {
-    const today = new Date();
-    
-    try {
-      return _.flatMap(services, category =>
-        _.chain(category.items)
-          .filter(service => service?.contract)
-          .map(service => {
-            const renewalDate = new Date(service.contract.renewalDate);
-            const daysUntilRenewal = dateUtils.getDaysDifference(today, renewalDate);
-
-            return {
-              name: service.name,
-              progress: _.clamp(service.contract.progress || 0, 0, 100),
-              daysUntilRenewal,
-              renewalDate: service.contract.renewalDate,
-              category: category.category,
-              isExpiringSoon: daysUntilRenewal <= 30,
-              estimatedRenewalCost: service.price?.uyuEquivalent || 0
-            };
-          })
-          .value()
-      );
-    } catch (error) {
-      console.error('Error getting contract status:', error);
       return [];
     }
   }
