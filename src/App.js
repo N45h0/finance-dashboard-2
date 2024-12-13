@@ -31,7 +31,7 @@ import {
   Cell 
 } from 'recharts';
 import { CreditCard, Calendar, AlertCircle } from 'lucide-react';
-import FileUploader from './components/FileUploader';
+import ManualDataEntry from './ManualDataEntry';
 
 // Importar datos y utilidades
 import loans from './data/loans';
