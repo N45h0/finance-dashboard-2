@@ -736,12 +736,10 @@ function Dashboard() {
 </TabPanel>
 
           
-      {/* Panel de Carga de Archivos */}
+      {/* Panel de Carga de información */}
       <TabPanel value={value} index={4}>
-        <Box sx={{ p: isMobile ? 1 : 2 }}>
-          <FileUploader />
-        </Box>
-      </TabPanel>
+        <ManualDataEntry />
+       </TabPanel>
     </Box>
   );
 }
