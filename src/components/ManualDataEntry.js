@@ -17,6 +17,9 @@ import { Save, Plus } from 'lucide-react';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
+// Importar servicios
+import { apiService } from '../services/apiService';
+
 const ManualDataEntry = () => {
   const [entryType, setEntryType] = useState('');
   const [formData, setFormData] = useState({
