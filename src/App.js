@@ -32,14 +32,21 @@ import {
 } from 'recharts';
 import { CreditCard, Calendar, AlertCircle } from 'lucide-react';
 
-// Importar datos y utilidades
+// Importar componentes
+import PaymentHistory from './components/PaymentHistory';
+import ManualDataEntry from './components/ManualDataEntry';
+import AccountsTab from './components/AccountsTab';
+
+// Importar datos
 import loans from './data/loans';
 import services from './data/services';
 import accounts from './data/accounts';
+
+// Importar utilidades y servicios
 import { calculateLoans, calculateServices } from './utils/calculations';
-import PaymentHistory from './components/PaymentHistory';
+import { dateUtils } from './utils/dateUtils';
 import formatters from './utils/formatters';
-import ManualDataEntry from './ManualDataEntry';
+import { apiService } from './services/apiService';
 
 // Hook personalizado para el tamaño de ventana
 const useWindowSize = () => {
