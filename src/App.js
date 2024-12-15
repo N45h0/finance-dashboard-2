@@ -36,12 +36,10 @@ import { CreditCard, Calendar, AlertCircle } from 'lucide-react';
 import loans from './data/loans';
 import services from './data/services';
 import accounts from './data/accounts';
-console.log('Accounts imported:', accounts); // Añadir aquí
 import { calculateLoans, calculateServices } from './utils/calculations';
 import PaymentHistory from './components/PaymentHistory';
 import formatters from './utils/formatters';
-import dateUtils from './utils/dateUtils';
-import ManualDataEntry from './components/ManualDataEntry';
+import ManualDataEntry from './ManualDataEntry';
 
 // Hook personalizado para el tamaño de ventana
 const useWindowSize = () => {
@@ -66,17 +64,6 @@ const useWindowSize = () => {
   return windowSize;
 };
 
-// Helper para cálculos anualizados
-const getAnnualizedAmount = (service) => {
-  if (!service?.price?.uyuEquivalent) return 0;
-  
-  const amount = service.price.uyuEquivalent;
-  if (service.billingCycle === 'annual') {
-    return service.contract?.monthlyEquivalent || amount / 12;
-  }
-  return amount;
-};
-
 // Colores para gráficos
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
 
@@ -87,14 +74,13 @@ function TabPanel(props) {
   return (
     <div
       role="tabpanel"
-      className={`transition-opacity duration-200 ${value === index ? 'opacity-100' : 'opacity-0 hidden'}`}
+      hidden={value !== index}
       id={`finance-tabpanel-${index}`}
       aria-labelledby={`finance-tab-${index}`}
-      aria-hidden={value !== index}
       {...other}
     >
       {value === index && (
-        <Box sx={{ p: { xs: 1, sm: 2, md: 3 } }}>
+        <Box sx={{ p: 3 }}>
           {children}
         </Box>
       )}
@@ -102,7 +88,7 @@ function TabPanel(props) {
   );
 }
 
-function Dashboard() {
+function App() {
   const { width } = useWindowSize();
   const isMobile = width <= 768;
   const isTablet = width <= 1024;
@@ -147,10 +133,7 @@ function Dashboard() {
     title: {
       fontSize: isMobile ? '1.5rem' : '2rem',
       textAlign: isMobile ? 'center' : 'left',
-    },
-    card: {
-      p: { xs: 1, sm: 2 },
-    },
+    }
   };
 
   const handleChange = (event, newValue) => {
@@ -162,7 +145,6 @@ function Dashboard() {
     const loadData = async () => {
       try {
         setIsLoading(true);
-        console.log('Loading data, accounts:', accounts); // Añadir aquí
 
         // Calcular resumen de préstamos
         const generalStats = calculateLoans.getGeneralStats();
@@ -198,14 +180,12 @@ function Dashboard() {
 
   if (isLoading) {
     return (
-      <Box 
-        sx={{ 
-          display: 'flex', 
-          justifyContent: 'center', 
-          alignItems: 'center', 
-          height: '100vh' 
-        }}
-      >
+      <Box sx={{ 
+        display: 'flex', 
+        justifyContent: 'center', 
+        alignItems: 'center', 
+        height: '100vh' 
+      }}>
         <CircularProgress />
       </Box>
     );
@@ -230,63 +210,18 @@ function Dashboard() {
         Dashboard Financiero Personal
       </Typography>
 
-      {/* Alertas */}
-      <Box sx={{ mb: isMobile ? 2 : 3 }}>
-        {loanSummary.overdueLoans.length > 0 && (
-          <Alert 
-            severity="error" 
-            sx={{ mb: 2, fontSize: isMobile ? '0.875rem' : '1rem' }}
-          >
-            <AlertTitle>Préstamos Vencidos</AlertTitle>
-            {loanSummary.overdueLoans.map(loan => (
-              <Typography 
-                key={loan.id}
-                sx={{ fontSize: isMobile ? '0.875rem' : '1rem' }}
-              >
-                {loan.name} - {formatters.currency(loan.currentBalance)} - 
-                Vencimiento: {formatters.date(loan.nextPaymentDate)}
-                {loan.projectedLateFees > 0 && (
-                  <Typography component="span" color="error">
-                    {' '}(Mora estimada: {formatters.currency(loan.projectedLateFees)})
-                  </Typography>
-                )}
-              </Typography>
-            ))}
-          </Alert>
-        )}
-
-        {serviceSummary.serviceAlerts.map((alert, index) => (
-          <Alert 
-            key={index} 
-            severity={alert.severity} 
-            sx={{ mb: 2, fontSize: isMobile ? '0.875rem' : '1rem' }}
-          >
-            <AlertTitle>{alert.type === 'renewal' ? 'Renovación Próxima' : alert.type}</AlertTitle>
-            {alert.message}
-          </Alert>
-        ))}
-      </Box>
-
-      {/* Tabs */}
       <Tabs 
         value={value} 
         onChange={handleChange}
         variant={isMobile ? "scrollable" : "standard"}
         scrollButtons={isMobile ? "auto" : false}
         allowScrollButtonsMobile
-        sx={{
-          '.MuiTab-root': {
-            fontSize: isMobile ? '0.875rem' : '1rem',
-            minWidth: isMobile ? 'auto' : 90,
-            p: isMobile ? 1 : 2,
-          }
-        }}
       >
         <Tab label="Resumen" />
         <Tab label="Préstamos" />
         <Tab label="Servicios" />
         <Tab label="Cuentas" />
-        <Tab label="Cargar Archivos" />
+        <Tab label="Cargar Datos" />
       </Tabs>
 
       {/* Panel de Resumen */}
@@ -736,12 +671,11 @@ function Dashboard() {
 </TabPanel>
 
           
-      {/* Panel de Carga de información */}
       <TabPanel value={value} index={4}>
         <ManualDataEntry />
-       </TabPanel>
+      </TabPanel>
     </Box>
   );
 }
 
-export default Dashboard;
+export default App;
