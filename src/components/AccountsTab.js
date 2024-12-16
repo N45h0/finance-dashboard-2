@@ -1,45 +1,27 @@
 import React from 'react';
 import { 
+  Grid, 
   Card, 
   CardContent, 
-  Grid, 
-  Typography, 
-  List, 
-  ListItem, 
-  ListItemText,
-  Alert,
-  Box
+  Typography 
 } from '@mui/material';
 import { CreditCard } from 'lucide-react';
-import formatters from '../utils/formatters';
 import accounts from '../data/accounts';
 
 const AccountsTab = () => {
   return (
-    <Grid container spacing={3}>
+    <Grid container spacing={2}>
       {accounts.map((account) => (
-        <Grid item xs={12} md={4} key={account.id}>
+        <Grid item xs={12} md={6} key={account.id}>
           <Card>
             <CardContent>
               <Typography variant="h6" gutterBottom>
                 {account.name}
               </Typography>
-              <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                <CreditCard size={20} className="mr-2" />
-                <Typography>{account.type}</Typography>
-              </Box>
-              {account.income && (
-                <List>
-                  {account.income.map((income, idx) => (
-                    <ListItem key={idx}>
-                      <ListItemText 
-                        primary={income.source}
-                        secondary={formatters.currency(income.estimatedAmount)} 
-                      />
-                    </ListItem>
-                  ))}
-                </List>
-              )}
+              <Typography>
+                <CreditCard size={16} style={{ marginRight: 8 }} />
+                {account.type}
+              </Typography>
             </CardContent>
           </Card>
         </Grid>
