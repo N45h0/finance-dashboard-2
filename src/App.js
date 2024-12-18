@@ -175,6 +175,24 @@ function App() {
 
   const [error, setError] = useState(null);
 
+const [servicesData, setServicesData] = useState(services);
+
+  // AGREGAR AQUÍ LA NUEVA FUNCIÓN DE ACTUALIZACIÓN
+  const handleServiceUpdate = (newService) => {
+    setServicesData(prevServices => {
+      const updatedServices = [...prevServices];
+      updatedServices[0].items.push(newService);
+      return updatedServices;
+    });
+
+    // Recalcular el resumen de servicios
+    setServiceSummary(prev => ({
+      ...prev,
+      monthlyTotal: calculateServices.getMonthlyTotal(),
+      upcomingPayments: calculateServices.getUpcomingPayments()
+    }));
+  };
+  
   const handleChange = (event, newValue) => {
     setValue(newValue);
   };
@@ -449,7 +467,7 @@ function App() {
                   Servicios Activos
                 </Typography>
                 <List>
-                  {services[0].items.map((service, index) => (
+                  {servicesData[0].items.map((service, index) => (
                     <ListItem key={index}>
                       <ListItemText
                         primary={service.name}
@@ -480,7 +498,7 @@ function App() {
 
       {/* Panel de Cargar Datos */}
       <TabPanel value={value} index={4}>
-        <ManualDataEntry />
+  <ManualDataEntry onServiceAdd={handleServiceUpdate} />
       </TabPanel>
     </Box>
   );
