@@ -33,7 +33,13 @@ const ManualDataEntry = ({ onServiceAdd }) => {
     owner: '',
     description: ''
   });
-  // AGREGAR AQUÍ
+  const entryTypes = [
+    { value: 'loan_payment', label: 'Pago de Préstamo' },
+    { value: 'new_loan', label: 'Nuevo Préstamo' },
+    { value: 'service_payment', label: 'Pago de Servicio' },
+    { value: 'new_service', label: 'Nuevo Servicio' },
+    { value: 'new_income', label: 'Nuevo Ingreso' }
+  ];
   // Función para obtener servicios
   const getServices = () => {
     const savedServices = localStorage.getItem('financeServices');
@@ -290,7 +296,43 @@ case 'service_payment':
             </Grid>
           </>
         );
-
+case 'new_income':
+  return (
+    <>
+      <Grid item xs={12} md={6}>
+        <TextField
+          fullWidth
+          label="Fuente de Ingreso"
+          name="name"
+          value={formData.name}
+          onChange={handleInputChange}
+        />
+      </Grid>
+      <Grid item xs={12} md={6}>
+        <TextField
+          fullWidth
+          label="Monto"
+          name="amount"
+          type="number"
+          value={formData.amount}
+          onChange={handleInputChange}
+        />
+      </Grid>
+      <Grid item xs={12} md={6}>
+        <FormControl fullWidth>
+          <InputLabel>Titular</InputLabel>
+          <Select
+            name="owner"
+            value={formData.owner}
+            onChange={handleInputChange}
+          >
+            <MenuItem value="Ignacio">Ignacio</MenuItem>
+            <MenuItem value="Yenniffer">Yenniffer</MenuItem>
+          </Select>
+        </FormControl>
+      </Grid>
+    </>
+  );
       default:
         return null;
     }
