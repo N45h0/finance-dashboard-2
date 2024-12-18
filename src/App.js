@@ -504,9 +504,13 @@ function App() {
       </TabPanel>
 
       {/* Panel de Cargar Datos */}
-      <TabPanel value={value} index={4}>
-  <ManualDataEntry onServiceAdd={handleServiceUpdate} />
-      </TabPanel>
+<TabPanel value={value} index={4}>
+  {isLoading ? (
+    <CircularProgress />
+  ) : (
+    <ManualDataEntry onServiceAdd={handleServiceUpdate} />
+  )}
+</TabPanel>
     </Box>
   );
 }
