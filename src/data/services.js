@@ -199,6 +199,44 @@ const services = [
             estimatedAmount: 520
           }
         }
+      },
+      {
+        id: "ALQ-IGN-2024",
+        name: "Alquiler Ignacio",
+        price: {
+          amount: 8500,
+          currency: "UYU",
+          uyuEquivalent: 8500
+        },
+        billingCycle: "monthly",
+        paymentMethod: "debit_6039",
+        billingDay: 3,
+        status: "active",
+        contract: {
+          startDate: "2024-12-01",
+          renewalDate: "2025-12-01",
+          cancellationDate: null,
+          duration: "12 months",
+          progress: 8.33,
+          isFixed: true
+        },
+        paymentHistory: [
+          {
+            date: "2024-12-03",
+            amount: 8500,
+            currency: "UYU",
+            status: "paid",
+            method: "debit_6039",
+            automaticPayment: true
+          }
+        ],
+        monthlyMetrics: {
+          totalPaid: 8500,
+          nextPayment: {
+            date: "2025-01-03",
+            estimatedAmount: 8500
+          }
+        }
       }
     ]
   }
