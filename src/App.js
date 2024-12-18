@@ -180,24 +180,24 @@ function App() {
     return savedServices ? JSON.parse(savedServices) : services;
   });
 // JUSTO DESPUÉS DEL ESTADO DE SERVICES DATA
-  const handleServiceUpdate = (newService) => {
-    setServicesData(prevServices => {
-      const updatedServices = [...prevServices];
-      updatedServices[0].items.push(newService);
-      
-      // Guardar en localStorage
-      localStorage.setItem('financeServices', JSON.stringify(updatedServices));
-      
-      return updatedServices;
-    });
+const handleServiceUpdate = (newService) => {
+  setServicesData(prevServices => {
+    const updatedServices = [...prevServices];
+    updatedServices[0].items.push(newService);
+    localStorage.setItem('financeServices', JSON.stringify(updatedServices));
+    return updatedServices;
+  });
 
-    // Recalcular el resumen de servicios
-    setServiceSummary(prev => ({
+  // Recalcular total
+  setServiceSummary(prev => {
+    const monthlyTotal = servicesData[0].items.reduce((sum, service) => 
+      sum + (service.price?.uyuEquivalent || 0), 0);
+    return {
       ...prev,
-      monthlyTotal: calculateServices.getMonthlyTotal(),
-      upcomingPayments: calculateServices.getUpcomingPayments()
-    }));
-  };
+      monthlyTotal
+    };
+  });
+};
 
   // La siguiente línea debe ser handleChange, déjala como está
   const handleChange = (event, newValue) => {
