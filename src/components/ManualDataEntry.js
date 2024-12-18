@@ -20,7 +20,7 @@ import 'react-toastify/dist/ReactToastify.css';
 // Importar servicios
 import { apiService } from '../services/apiService';
 
-const ManualDataEntry = () => {
+const ManualDataEntry = ({ onServiceAdd }) => {
   const [entryType, setEntryType] = useState('');
   const [formData, setFormData] = useState({
     name: '',
@@ -62,8 +62,22 @@ const ManualDataEntry = () => {
     event.preventDefault();
     
     try {
-      // Aquí iría la lógica para actualizar los datos en la aplicación
-      console.log('Datos a guardar:', formData);
+      const newData = {
+        name: formData.name,
+        price: {
+          amount: parseFloat(formData.amount),
+          currency: 'UYU',
+          uyuEquivalent: parseFloat(formData.amount)
+        },
+        billingCycle: 'monthly',
+        paymentMethod: `debit_${formData.owner}`,
+        status: 'active'
+      };
+
+      // Si es un nuevo servicio, actualizamos los servicios
+      if (entryType === 'new_service') {
+        onServiceAdd(newData);
+      }
       
       toast.success('Datos guardados correctamente');
       
