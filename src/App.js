@@ -45,11 +45,12 @@ import {
 import PaymentHistory from './components/PaymentHistory';
 import ManualDataEntry from './components/ManualDataEntry';
 import AccountsTab from './components/AccountsTab';
-
+import IncomeTab from './components/IncomeTab';
 // Importar datos
 import loans from './data/loans';
 import services from './data/services';
 import accounts from './data/accounts';
+import income from './data/income';
 
 // Importar utilidades y servicios
 import { calculateLoans, calculateServices } from './utils/calculations';
@@ -291,6 +292,7 @@ const handleServiceUpdate = (newService) => {
         <Tab label="Préstamos" />
         <Tab label="Servicios" />
         <Tab label="Cuentas" />
+        <Tab label="Ingresos" />
         <Tab label="Cargar Datos" />
       </Tabs>
 
@@ -503,8 +505,13 @@ const handleServiceUpdate = (newService) => {
         <AccountsTab />
       </TabPanel>
 
+      {/* Panel de Ingresos */}
+      <TabPanel value={value} index={4}>
+        <IncomeTab income={income} />
+      </TabPanel>
+
       {/* Panel de Cargar Datos */}
-<TabPanel value={value} index={4}>
+<TabPanel value={value} index={5}>
   {isLoading ? (
     <CircularProgress />
   ) : (
