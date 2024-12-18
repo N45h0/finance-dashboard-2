@@ -33,13 +33,6 @@ const ManualDataEntry = ({ onServiceAdd }) => {
     owner: '',
     description: ''
   });
-  const entryTypes = [
-    { value: 'loan_payment', label: 'Pago de Préstamo' },
-    { value: 'new_loan', label: 'Nuevo Préstamo' },
-    { value: 'service_payment', label: 'Pago de Servicio' },
-    { value: 'new_service', label: 'Nuevo Servicio' },
-    { value: 'new_income', label: 'Nuevo Ingreso' }
-  ];
   // Función para obtener servicios
   const getServices = () => {
     const savedServices = localStorage.getItem('financeServices');
@@ -63,12 +56,13 @@ const ManualDataEntry = ({ onServiceAdd }) => {
       }
     }
   }, [entryType, formData.name]);
-  const entryTypes = [
-    { value: 'loan_payment', label: 'Pago de Préstamo' },
-    { value: 'new_loan', label: 'Nuevo Préstamo' },
-    { value: 'service_payment', label: 'Pago de Servicio' },
-    { value: 'new_service', label: 'Nuevo Servicio' }
-  ];
+const entryTypes = [
+  { value: 'loan_payment', label: 'Pago de Préstamo' },
+  { value: 'new_loan', label: 'Nuevo Préstamo' },
+  { value: 'service_payment', label: 'Pago de Servicio' },
+  { value: 'new_service', label: 'Nuevo Servicio' },
+  { value: 'new_income', label: 'Nuevo Ingreso' }
+];
 
   const handleTypeChange = (event) => {
     setEntryType(event.target.value);
