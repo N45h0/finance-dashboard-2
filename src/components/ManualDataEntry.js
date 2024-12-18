@@ -20,6 +20,10 @@ import 'react-toastify/dist/ReactToastify.css';
 // Importar servicios
 import { apiService } from '../services/apiService';
 
+// Importar préstamos y servicios de Data
+import loans from '../data/loans';
+import services from '../data/services';
+
 // Importar formatos
 import formatters from '../utils/formatters';
 
@@ -132,18 +136,20 @@ const handleSubmit = (event) => {
           <>
             <Grid item xs={12} md={6}>
               <FormControl fullWidth>
-                <InputLabel>Préstamo</InputLabel>
-                <Select
-                  name="name"
-                  value={formData.name}
-                  onChange={handleInputChange}
-                  label="Préstamo"
-                >
-                  <MenuItem value="BROU Viaje Argentina">BROU Viaje Argentina</MenuItem>
-                  <MenuItem value="BROU Dentista">BROU Dentista</MenuItem>
-                  <MenuItem value="BROU Buenos Aires">BROU Buenos Aires</MenuItem>
-                </Select>
-              </FormControl>
+  <InputLabel>Préstamo</InputLabel>
+  <Select
+    name="name"
+    value={formData.name}
+    onChange={handleInputChange}
+    label="Préstamo"
+  >
+    {loans.map(loan => (
+      <MenuItem key={loan.id} value={loan.name}>
+        {loan.name}
+      </MenuItem>
+    ))}
+  </Select>
+</FormControl>
             </Grid>
             <Grid item xs={12} md={6}>
               <TextField
@@ -213,20 +219,20 @@ case 'service_payment':
           <>
             <Grid item xs={12} md={6}>
               <FormControl fullWidth>
-                <InputLabel>Servicio</InputLabel>
-                <Select
-                  name="name"
-                  value={formData.name}
-                  onChange={handleInputChange}
-                  label="Servicio"
-                >
-                  {getServices().map((service, index) => (
-                    <MenuItem key={index} value={service.name}>
-                      {service.name} - {formatters.currency(service.price.uyuEquivalent)}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
+  <InputLabel>Servicio</InputLabel>
+  <Select
+    name="name"
+    value={formData.name}
+    onChange={handleInputChange}
+    label="Servicio"
+  >
+    {services[0].items.map((service) => (
+      <MenuItem key={service.id} value={service.name}>
+        {service.name} - {formatters.currency(service.price.uyuEquivalent)}
+      </MenuItem>
+    ))}
+  </Select>
+</FormControl>
             </Grid>
             <Grid item xs={12} md={6}>
               <TextField
