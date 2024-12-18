@@ -20,6 +20,9 @@ import 'react-toastify/dist/ReactToastify.css';
 // Importar servicios
 import { apiService } from '../services/apiService';
 
+// Importar formatos
+import formatters from '../utils/formatters';
+
 const ManualDataEntry = ({ onServiceAdd }) => {
   const [entryType, setEntryType] = useState('');
   const [formData, setFormData] = useState({
