@@ -30,7 +30,30 @@ const ManualDataEntry = ({ onServiceAdd }) => {
     owner: '',
     description: ''
   });
+  // AGREGAR AQUÍ
+  // Función para obtener servicios
+  const getServices = () => {
+    const savedServices = localStorage.getItem('financeServices');
+    if (savedServices) {
+      const services = JSON.parse(savedServices);
+      return services[0]?.items || [];
+    }
+    return [];
+  };
 
+  // Efecto para precargar monto del servicio
+  useEffect(() => {
+    if (entryType === 'service_payment' && formData.name) {
+      const services = getServices();
+      const selectedService = services.find(s => s.name === formData.name);
+      if (selectedService) {
+        setFormData(prev => ({
+          ...prev,
+          amount: selectedService.price.uyuEquivalent.toString()
+        }));
+      }
+    }
+  }, [entryType, formData.name]);
   const entryTypes = [
     { value: 'loan_payment', label: 'Pago de Préstamo' },
     { value: 'new_loan', label: 'Nuevo Préstamo' },
@@ -58,30 +81,33 @@ const ManualDataEntry = ({ onServiceAdd }) => {
     }));
   };
 
-  const handleSubmit = (event) => {
+const handleSubmit = (event) => {
     event.preventDefault();
     
     try {
-      const newData = {
-        name: formData.name,
-        price: {
-          amount: parseFloat(formData.amount),
-          currency: 'UYU',
-          uyuEquivalent: parseFloat(formData.amount)
-        },
-        billingCycle: 'monthly',
-        paymentMethod: `debit_${formData.owner}`,
-        status: 'active'
-      };
-
-      // Si es un nuevo servicio, actualizamos los servicios
       if (entryType === 'new_service') {
-        onServiceAdd(newData);
+        const newService = {
+          id: `SRV-${Date.now()}`,  // Agregar ID único
+          name: formData.name,
+          price: {
+            amount: parseFloat(formData.amount),
+            currency: 'UYU',
+            uyuEquivalent: parseFloat(formData.amount)
+          },
+          billingCycle: 'monthly',
+          paymentMethod: `debit_${formData.owner}`,
+          status: 'active',
+          billingDay: new Date().getDate()
+        };
+
+        onServiceAdd(newService);
+      } else if (entryType === 'service_payment') {
+        // Aquí iría la lógica para registrar un pago de servicio
+        console.log('Registrando pago de servicio:', formData);
       }
       
       toast.success('Datos guardados correctamente');
       
-      // Resetear el formulario
       setFormData({
         name: '',
         amount: '',
@@ -179,7 +205,7 @@ const ManualDataEntry = ({ onServiceAdd }) => {
           </>
         );
 
-      case 'service_payment':
+case 'service_payment':
         return (
           <>
             <Grid item xs={12} md={6}>
@@ -191,9 +217,11 @@ const ManualDataEntry = ({ onServiceAdd }) => {
                   onChange={handleInputChange}
                   label="Servicio"
                 >
-                  <MenuItem value="Spotify Premium Familiar">Spotify Premium Familiar</MenuItem>
-                  <MenuItem value="ChatGPT Plus">ChatGPT Plus</MenuItem>
-                  <MenuItem value="Claude Pro">Claude Pro</MenuItem>
+                  {getServices().map((service, index) => (
+                    <MenuItem key={index} value={service.name}>
+                      {service.name} - {formatters.currency(service.price.uyuEquivalent)}
+                    </MenuItem>
+                  ))}
                 </Select>
               </FormControl>
             </Grid>
@@ -220,7 +248,6 @@ const ManualDataEntry = ({ onServiceAdd }) => {
             </Grid>
           </>
         );
-
       case 'new_service':
         return (
           <>
