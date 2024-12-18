@@ -175,13 +175,19 @@ function App() {
 
   const [error, setError] = useState(null);
 
-const [servicesData, setServicesData] = useState(services);
-
-  // AGREGAR AQUÍ LA NUEVA FUNCIÓN DE ACTUALIZACIÓN
+  const [servicesData, setServicesData] = useState(() => {
+    const savedServices = localStorage.getItem('financeServices');
+    return savedServices ? JSON.parse(savedServices) : services;
+  });
+// JUSTO DESPUÉS DEL ESTADO DE SERVICES DATA
   const handleServiceUpdate = (newService) => {
     setServicesData(prevServices => {
       const updatedServices = [...prevServices];
       updatedServices[0].items.push(newService);
+      
+      // Guardar en localStorage
+      localStorage.setItem('financeServices', JSON.stringify(updatedServices));
+      
       return updatedServices;
     });
 
@@ -192,7 +198,8 @@ const [servicesData, setServicesData] = useState(services);
       upcomingPayments: calculateServices.getUpcomingPayments()
     }));
   };
-  
+
+  // La siguiente línea debe ser handleChange, déjala como está
   const handleChange = (event, newValue) => {
     setValue(newValue);
   };
