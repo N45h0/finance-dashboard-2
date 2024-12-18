@@ -1,4 +1,7 @@
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:3000/api';
+const isDev = window.location.hostname === 'localhost';
+const API_BASE_URL = isDev 
+  ? 'http://localhost:3000/api'
+  : `${window.location.origin}/api`;
 
 export const apiService = {
   async saveManualEntry(data) {
@@ -30,3 +33,5 @@ export const apiService = {
     }
   }
 };
+
+export default apiService;
