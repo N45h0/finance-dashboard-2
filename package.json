@@ -2,6 +2,7 @@
   "name": "finance-dashboard-2",
   "version": "0.1.0",
   "private": true,
+  "homepage": "https://pay.alvy.site",
   "dependencies": {
     "@emotion/react": "^11.11.0",
     "@emotion/styled": "^11.11.0",
@@ -19,8 +20,8 @@
     "@babel/plugin-proposal-private-property-in-object": "^7.21.11"
   },
   "scripts": {
-    "start": "serve -s build",
-    "build": "CI=false DISABLE_ESLINT_PLUGIN=true react-scripts build",
+    "start": "react-scripts start",
+    "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
