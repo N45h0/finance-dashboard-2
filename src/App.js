@@ -44,6 +44,7 @@ import {
 // Importar componentes
 import PaymentHistory from './components/PaymentHistory';
 import ManualDataEntry from './components/ManualDataEntry';
+import PaymentSummary from './components/PaymentSummary'; 
 import AccountsTab from './components/AccountsTab';
 import IncomeTab from './components/IncomeTab';
 // Importar datos
@@ -357,6 +358,15 @@ const handleServiceUpdate = (newService) => {
             </Box>
           </CardContent>
         </Card>
+
+     <Card sx={{ mb: isMobile ? 2 : 3 }}>
+  <CardContent>
+    <Typography variant={isMobile ? "subtitle1" : "h6"} gutterBottom>
+      Resumen de Pagos Mensuales
+    </Typography>
+    <PaymentSummary />
+  </CardContent>
+</Card>
 
         <Grid container spacing={responsiveStyles.grid.spacing}>
           {/* Gráfico de distribución */}
