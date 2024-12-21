@@ -30,7 +30,7 @@ const loans = [
   {
     id: 2,
     name: "BROU Viaje Argentina",
-    owner: "Ignacio",
+    owner: "Yenni",
     capital: 12000.00,
     installments: 10,
     amount: 1411.58,
@@ -40,7 +40,7 @@ const loans = [
     paymentHistory: [],
     moratory: 43.74,
     cancellationFee: 732.00,
-    account: "6039",
+    account: "8475",
     // Sin pagos realizados
     currentBalance: 12000.00,    // Capital completo
     totalAmountToPay: 14115.80,  // 10 * 1411.58
@@ -100,7 +100,7 @@ const loans = [
   {
     id: 4,
     name: "BROU Buenos Aires",
-    owner: "Yenni",
+    owner: "Ignacio",
     capital: 10000.00,
     installments: 6,
     amount: 1801.64,
@@ -110,7 +110,7 @@ const loans = [
     paymentHistory: [],
     moratory: 43.74,
     ceipRetention: true,
-    account: "2477",
+    account: "6039",
     // Sin pagos realizados
     currentBalance: 10000.00,    // Capital completo
     totalAmountToPay: 10809.84,  // 6 * 1801.64
