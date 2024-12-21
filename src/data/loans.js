@@ -40,7 +40,7 @@ const loans = [
     paymentHistory: [],
     moratory: 43.74,
     cancellationFee: 732.00,
-    account: "2477",
+    account: "6039",
     // Sin pagos realizados
     currentBalance: 12000.00,    // Capital completo
     totalAmountToPay: 14115.80,  // 10 * 1411.58
@@ -60,10 +60,17 @@ const loans = [
     status: "active",
     paymentHistory: [
       { 
-        date: "2024-10-03",
+        date: "2025-01-03",
         amount: 1916.39,
         status: "paid",
-        installmentNumber: 1,
+        installmentNumber: 4,
+        paymentType: "regular"
+      },
+      { 
+        date: "2024-12-03",
+        amount: 1916.39,
+        status: "paid",
+        installmentNumber: 3,
         paymentType: "regular"
       },
       { 
@@ -74,10 +81,10 @@ const loans = [
         paymentType: "regular"
       },      
       { 
-        date: "2024-12-03",
+        date: "2024-10-03",
         amount: 1916.39,
         status: "paid",
-        installmentNumber: 3,
+        installmentNumber: 1,
         paymentType: "regular"
       }
     ],
