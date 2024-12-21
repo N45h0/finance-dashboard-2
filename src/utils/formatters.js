@@ -78,7 +78,7 @@ const formatters = {
   },
 
   // Formateo específico para progreso
-  progress: (value, options = {}) => {
+progress: (value, options = {}) => {
     try {
       const {
         showDecimals = true,
@@ -90,7 +90,7 @@ const formatters = {
       if (showDecimals) {
         return `${normalizedValue.toFixed(1)}${suffix}`;
       }
-      return `${Math.round(normalizedValue)}${suffix}`;
+      return `${Math.round(normalizedValue)}${suffix}`;  // Esta es la línea 96
     } catch (error) {
       console.warn('Error formatting progress:', error);
       return `0${suffix}`;
