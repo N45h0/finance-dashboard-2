@@ -237,6 +237,38 @@ const services = [
             estimatedAmount: 8500
           }
         }
+      },
+      {
+  id: "BARB-2024",
+  name: "Barbería",
+  price: {
+    amount: 820,
+    currency: "UYU",
+    uyuEquivalent: 820
+  },
+  billingCycle: "monthly",
+  paymentMethod: "debit_6039",
+  billingDay: 20,
+  status: "active",
+  contract: null,
+  paymentHistory: [
+    {
+      date: "2024-12-20",
+      amount: 820,
+      currency: "UYU",
+      uyuAmount: 820,
+      status: "paid",
+      method: "debit_6039",
+      automaticPayment: true
+    }
+  ],
+  monthlyMetrics: {
+    totalPaid: 820,
+    nextPayment: {
+      date: "2025-01-20",
+      estimatedAmount: 820
+    }
+  }
       }
     ]
   }
