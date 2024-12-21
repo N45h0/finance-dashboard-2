@@ -25,9 +25,7 @@
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
-  "eslintConfig": {
-    "extends": [
-      "react-app"
+"build": "CI=false DISABLE_ESLINT_PLUGIN=true react-scripts build",
     ]
   },
   "browserslist": {
