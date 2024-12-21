@@ -169,6 +169,36 @@ const accounts = [
       lastUpdate: null, 
       amount: null
     }  
+  },
+  {
+    id: "8475",
+    name: "BROU Mastercard 8475",
+    type: "Mastercard crédito",
+    status: "active",
+    primary: false,
+    linkedLoans: [
+      {
+        name: "BROU Viaje Argentina",
+        amount: 1411.58,
+        paymentDay: 1,
+        automatic: true
+      }
+    ],
+    monthlyOutflow: {
+      services: 0,
+      loans: 1411.58,
+      total: 1411.58
+    },
+    monthlyInflow: {
+      estimated: 0,
+      services: 0,
+      total: 0
+    },
+    balance: {
+      available: true,
+      lastUpdate: null,
+      amount: null
+    }
   }
 ];
 
