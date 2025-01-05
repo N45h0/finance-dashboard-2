@@ -42,9 +42,9 @@ const services = [
         monthlyMetrics: {
           totalPaid: 541.72,
           nextPayment: {
-            date: "2025-01-03",
-            estimatedAmount: 541.72
-          }
+          date: "2025-02-03",  // Un mes después del último pago
+          estimatedAmount: 541.72
+        }
         }
       },
       {
@@ -97,8 +97,8 @@ const services = [
         monthlyMetrics: {
           totalPaid: 1866,
           nextPayment: {
-            date: "2024-12-10",
-            estimatedAmount: 933
+            date: "2025-01-20",  // Un mes después del último pago
+            estimatedAmount: 912.54  // Usando el monto del último pago
           }
         }
       },
@@ -113,7 +113,7 @@ const services = [
         },
         billingCycle: "monthly",
         paymentMethod: "debit_6039",
-        billingDay: 22,
+        billingDay: 03,
         status: "active",
         contract: null,
         paymentHistory: [
@@ -126,12 +126,21 @@ const services = [
             status: "paid",
             method: "debit_6039",
             automaticPayment: true
+          }          {
+            date: "2025-01-03",
+            amount: 20.00,
+            currency: "USD",
+            uyuAmount: 900,
+            exchangeRate: 45.00,
+            status: "paid",
+            method: "debit_6039",
+            automaticPayment: true
           }
         ],
         monthlyMetrics: {
           totalPaid: 900,
           nextPayment: {
-            date: "2024-12-22",
+            date: "2025-02-03",  // Un mes después del último pago
             estimatedAmount: 900
           }
         }
@@ -225,8 +234,8 @@ const services = [
         monthlyMetrics: {
           totalPaid: 163.76,
           nextPayment: {
-            date: "2024-12-22",
-            estimatedAmount: 520
+            date: "2025-01-22",  // Un mes después del último pago
+            estimatedAmount: 590  // Usando el monto del último pago completo
           }
         }
       },
@@ -273,7 +282,7 @@ const services = [
         monthlyMetrics: {
           totalPaid: 8500,
           nextPayment: {
-            date: "2025-01-03",
+            date: "2025-02-05",  // Un mes después del último pago
             estimatedAmount: 8500
           }
         }
@@ -315,7 +324,7 @@ const services = [
   monthlyMetrics: {
     totalPaid: 820,
     nextPayment: {
-      date: "2025-01-20",
+      date: "2025-02-20",  // Un mes después del último pago
       estimatedAmount: 820
     }
   }
