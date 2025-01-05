@@ -17,9 +17,19 @@ const services = [
         billingDay: 3,
         status: "active",
         contract: null,
-        paymentHistory: [
+          paymentHistory: [
           {
             date: "2024-12-03",
+            amount: 11.99,
+            currency: "USD",
+            uyuAmount: 541.72,
+            exchangeRate: 45.18,
+            status: "paid",
+            method: "debit_6039",
+            automaticPayment: true
+          },
+          {
+            date: "2025-01-03",
             amount: 11.99,
             currency: "USD",
             uyuAmount: 541.72,
@@ -71,6 +81,17 @@ const services = [
             status: "paid",
             method: "debit_2477",
             automaticPayment: true
+          },
+          {
+            date: "2024-12-20",
+            amount: 20.00,
+            currency: "USD",
+            uyuAmount: 912.54,
+            exchangeRate: 45.627,
+            status: "paid",
+            method: "debit_6039",
+            automaticPayment: true,
+            operationNumber: "435521550125"
           }
         ],
         monthlyMetrics: {
@@ -190,6 +211,15 @@ const services = [
             method: "debit_6039",
             automaticPayment: true,
             details: "Pago prorrateo primer mes"
+          },
+          {
+            date: "2024-12-22",
+            amount: 590.00,
+            currency: "UYU",
+            status: "paid",
+            method: "debit_6039",
+            automaticPayment: true,
+            details: "Pago Diciembre mes 2"
           }
         ],
         monthlyMetrics: {
@@ -228,6 +258,16 @@ const services = [
             status: "paid",
             method: "debit_6039",
             automaticPayment: true
+          },
+          {
+            date: "2025-01-05",
+            amount: 8500,
+            currency: "UYU",
+            status: "paid",
+            method: "transfer_6039",
+            automaticPayment: false,
+            operationNumber: "2501050386343682",
+            details: "Transferencia a Celular"
           }
         ],
         monthlyMetrics: {
@@ -252,8 +292,18 @@ const services = [
   status: "active",
   contract: null,
   paymentHistory: [
-    {
+{
       date: "2024-12-20",
+      amount: 820,
+      currency: "UYU",
+      uyuAmount: 820,
+      status: "paid",
+      method: "debit_6039",
+      automaticPayment: true,
+      operationNumber: "435521968838"
+    },
+    {
+      date: "2025-01-20",
       amount: 820,
       currency: "UYU",
       uyuAmount: 820,
