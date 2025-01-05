@@ -40,7 +40,7 @@ const services = [
           }
         ],
         monthlyMetrics: {
-          totalPaid: 541.72,
+          totalPaid: 1083.44,
           nextPayment: {
           date: "2025-02-03",  // Un mes después del último pago
           estimatedAmount: 541.72
@@ -95,7 +95,7 @@ const services = [
           }
         ],
         monthlyMetrics: {
-          totalPaid: 1866,
+          totalPaid: 2778.54,
           nextPayment: {
             date: "2025-01-20",  // Un mes después del último pago
             estimatedAmount: 912.54  // Usando el monto del último pago
@@ -138,7 +138,7 @@ const services = [
           }
         ],
         monthlyMetrics: {
-          totalPaid: 900,
+          totalPaid: 1800,
           nextPayment: {
             date: "2025-02-03",  // Un mes después del último pago
             estimatedAmount: 900
@@ -232,7 +232,7 @@ const services = [
           }
         ],
         monthlyMetrics: {
-          totalPaid: 163.76,
+          totalPaid: 753.76,
           nextPayment: {
             date: "2025-01-22",  // Un mes después del último pago
             estimatedAmount: 590  // Usando el monto del último pago completo
@@ -280,7 +280,7 @@ const services = [
           }
         ],
         monthlyMetrics: {
-          totalPaid: 8500,
+          totalPaid: 17000,
           nextPayment: {
             date: "2025-02-05",  // Un mes después del último pago
             estimatedAmount: 8500
@@ -322,7 +322,7 @@ const services = [
     }
   ],
   monthlyMetrics: {
-    totalPaid: 820,
+    totalPaid: 1640,
     nextPayment: {
       date: "2025-02-20",  // Un mes después del último pago
       estimatedAmount: 820
