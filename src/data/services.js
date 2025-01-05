@@ -58,7 +58,7 @@ const services = [
         },
         billingCycle: "monthly",
         paymentMethod: "debit_2477",
-        : 10,
+        billingDay: 10,
         status: "active",
         contract: null,
         paymentHistory: [
