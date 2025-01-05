@@ -48,19 +48,23 @@ const services = [
         }
       },
       {
-        id: "CHATGPT-2024",
+id: "CHATGPT-2024",
         name: "ChatGPT Plus",
         price: {
-          amount: 20.00,
+          amount: 19.99,
           currency: "USD",
-          uyuEquivalent: 933,
-          exchangeRate: 46.65
+          uyuEquivalent: 912.54,
+          exchangeRate: 45.65
         },
         billingCycle: "monthly",
-        paymentMethod: "debit_2477",
-        billingDay: 10,
+        paymentMethod: "debit_6039",
+        billingDay: 20,
         status: "active",
-        contract: null,
+        contract: {
+          startDate: "2024-12-20",
+          renewalDate: "2025-01-20",
+          details: "Suscripción con renovación automática via Google Play"
+        },
         paymentHistory: [
           {
             date: "2024-10-10",
@@ -83,22 +87,32 @@ const services = [
             automaticPayment: true
           },
           {
-            date: "2024-12-20",
+            date: "2024-12-11",
             amount: 20.00,
             currency: "USD",
+            status: "cancelled",
+            method: "debit_2477",
+            automaticPayment: false,
+            details: "Plan cancelado - Fin de suscripción OpenAI"
+          },
+          {
+            date: "2024-12-20",
+            amount: 19.99,
+            currency: "USD",
             uyuAmount: 912.54,
-            exchangeRate: 45.627,
+            exchangeRate: 45.65,
             status: "paid",
             method: "debit_6039",
             automaticPayment: true,
-            operationNumber: "435521550125"
+            details: "Nueva suscripción via Google Play",
+            operationNumber: "GPA.3359-1513-1278-52925"
           }
         ],
         monthlyMetrics: {
-          totalPaid: 2778.54,
+          totalPaid: 3691.08,  // Suma de todos los pagos UYU
           nextPayment: {
-            date: "2025-01-20",  // Un mes después del último pago
-            estimatedAmount: 912.54  // Usando el monto del último pago
+            date: "2025-01-20",
+            estimatedAmount: 912.54
           }
         }
       },
