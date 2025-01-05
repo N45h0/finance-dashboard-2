@@ -126,7 +126,8 @@ const services = [
             status: "paid",
             method: "debit_6039",
             automaticPayment: true
-          }          {
+          },
+          {
             date: "2025-01-03",
             amount: 20.00,
             currency: "USD",
