@@ -19,6 +19,8 @@ import {
   Chip
 } from '@mui/material';
 
+import { BrowserRouter } from 'react-router-dom';
+
 // Imports de Recharts para gráficos
 import { 
   LineChart, 
