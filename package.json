@@ -18,12 +18,13 @@
   "devDependencies": {
     "@babel/plugin-proposal-private-property-in-object": "^7.21.11"
   },
-  "scripts": {
-    "start": "serve -s build",
-    "build": "CI=false DISABLE_ESLINT_PLUGIN=true react-scripts build",
+"scripts": {
+    "dev": "react-scripts start",
+    "start": "react-scripts start",
+    "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
-  },
+},
   "eslintConfig": {
     "extends": [
       "react-app"
