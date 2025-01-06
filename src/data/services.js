@@ -17,7 +17,7 @@ const services = [
         billingDay: 3,
         status: "active",
         contract: null,
-          paymentHistory: [
+        paymentHistory: [
           {
             date: "2024-12-03",
             amount: 11.99,
@@ -39,83 +39,125 @@ const services = [
             automaticPayment: true
           }
         ],
-        {
-  id: "CHATGPT-2024",
-  name: "ChatGPT Plus",
-  price: {
-    amount: 20.00,
-    currency: "USD",
-    uyuEquivalent: 912.54,
-    exchangeRate: 45.627
-  },
-  billingCycle: "monthly",
-  paymentMethod: "debit_6039",  // Actualizado para reflejar el método actual
-  billingDay: 20,  // Actualizado al día real de cobro
-  status: "active",
-  contract: null,
-  paymentHistory: [
-    {
-      date: "2024-10-10",
-      amount: 20.00,
-      currency: "USD",
-      uyuAmount: 933,
-      exchangeRate: 46.65,
-      status: "paid",
-      method: "debit_2477",
-      automaticPayment: true,
-      details: "Pago con tarjeta anterior"
-    },
-    {
-      date: "2024-11-10",
-      amount: 20.00,
-      currency: "USD",
-      uyuAmount: 933,
-      exchangeRate: 46.65,
-      status: "paid",
-      method: "debit_2477",
-      automaticPayment: true,
-      details: "Último pago con tarjeta anterior"
-    },
-    {
-      date: "2024-12-20",
-      amount: 20.00,
-      currency: "USD",
-      uyuAmount: 912.54,
-      exchangeRate: 45.627,
-      status: "paid",
-      method: "debit_6039",
-      automaticPayment: true,
-      operationNumber: "435521550125",
-      details: "Primer pago con nueva tarjeta"
-    }
-  ],
-  monthlyMetrics: {
-    totalPaid: 2778.54,
-    nextPayment: {
-      date: "2025-01-20",
-      estimatedAmount: 912.54
-    }
-  }
-},
-                }
+        monthlyMetrics: {
+          totalPaid: 1083.44,
+          nextPayment: {
+            date: "2025-02-03",
+            estimatedAmount: 541.72
+          }
+        }
+      },
+      {
+        id: "CHATGPT-2024",
+        name: "ChatGPT Plus",
+        price: {
+          amount: 20.00,
+          currency: "USD",
+          uyuEquivalent: 912.54,
+          exchangeRate: 45.627
+        },
+        billingCycle: "monthly",
+        paymentMethod: "debit_6039",
+        billingDay: 20,
+        status: "active",
+        contract: null,
+        paymentHistory: [
+          {
+            date: "2024-10-10",
+            amount: 20.00,
+            currency: "USD",
+            uyuAmount: 933,
+            exchangeRate: 46.65,
+            status: "paid",
+            method: "debit_2477",
+            automaticPayment: true,
+            details: "Pago con tarjeta anterior"
+          },
+          {
+            date: "2024-11-10",
+            amount: 20.00,
+            currency: "USD",
+            uyuAmount: 933,
+            exchangeRate: 46.65,
+            status: "paid",
+            method: "debit_2477",
+            automaticPayment: true,
+            details: "Último pago con tarjeta anterior"
+          },
+          {
+            date: "2024-12-20",
+            amount: 20.00,
+            currency: "USD",
+            uyuAmount: 912.54,
+            exchangeRate: 45.627,
+            status: "paid",
+            method: "debit_6039",
+            automaticPayment: true,
+            operationNumber: "435521550125",
+            details: "Primer pago con nueva tarjeta"
+          }
+        ],
+        monthlyMetrics: {
+          totalPaid: 2778.54,
+          nextPayment: {
+            date: "2025-01-20",
+            estimatedAmount: 912.54
+          }
+        }
+      },
+      {
+        id: "CLDE-2024",
+        name: "Claude Pro",
+        price: {
+          amount: 20.00,
+          currency: "USD",
+          uyuEquivalent: 900,
+          exchangeRate: 45.00
+        },
+        billingCycle: "monthly",
+        paymentMethod: "debit_6039",
+        billingDay: 3,
+        status: "active",
+        contract: null,
+        paymentHistory: [
+          {
+            date: "2024-11-22",
+            amount: 20.00,
+            currency: "USD",
+            uyuAmount: 900,
+            exchangeRate: 45.00,
+            status: "paid",
+            method: "debit_6039",
+            automaticPayment: true
+          },
+          {
+            date: "2025-01-03",
+            amount: 20.00,
+            currency: "USD",
+            uyuAmount: 900,
+            exchangeRate: 45.00,
+            status: "paid",
+            method: "debit_6039",
+            automaticPayment: true
+          }
         ],
         monthlyMetrics: {
           totalPaid: 1800,
           nextPayment: {
-            date: "2025-02-03",  // Un mes después del último pago
+            date: "2025-02-03",
             estimatedAmount: 900
           }
         }
       },
-        {
-          id: "GONE-2024",  // Solo un ID
-          name: "Google One",
-          price: {
-            amount: 20.00,
-            currency: "USD",
-            uyuEquivalent: 887.56,
-            exchangeRate: 44.38
-         },
+      {
+        id: "GONE-2024",
+        name: "Google One",
+        price: {
+          amount: 20.00,
+          currency: "USD",
+          uyuEquivalent: 887.56,
+          exchangeRate: 44.38
+        },
         billingCycle: "annual",
         paymentMethod: "debit_6039",
         billingDay: 1,
@@ -125,10 +167,9 @@ const services = [
           renewalDate: "2025-12-01",
           cancellationDate: null,
           duration: "12 months",
-          // Calcular el progreso basado en días transcurridos desde startDate
           progress: ((new Date() - new Date("2024-12-01")) / (365 * 24 * 60 * 60 * 1000)) * 100,
           isFixed: true,
-          monthlyEquivalent: 73.96  // 887.56 / 12
+          monthlyEquivalent: 73.96
         },
         paymentHistory: [
           {
@@ -146,7 +187,7 @@ const services = [
         monthlyMetrics: {
           totalPaid: 887.56,
           nextPayment: {
-            date: "2025-12-01",  // Corregido para reflejar el ciclo anual
+            date: "2025-12-01",
             estimatedAmount: 887.56
           }
         }
@@ -195,8 +236,8 @@ const services = [
         monthlyMetrics: {
           totalPaid: 753.76,
           nextPayment: {
-            date: "2025-01-22",  // Un mes después del último pago
-            estimatedAmount: 590  // Usando el monto del último pago completo
+            date: "2025-01-22",
+            estimatedAmount: 590
           }
         }
       },
@@ -243,52 +284,52 @@ const services = [
         monthlyMetrics: {
           totalPaid: 17000,
           nextPayment: {
-            date: "2025-02-05",  // Un mes después del último pago
+            date: "2025-02-05",
             estimatedAmount: 8500
           }
         }
       },
       {
-  id: "BARB-2024",
-  name: "Barbería",
-  price: {
-    amount: 820,
-    currency: "UYU",
-    uyuEquivalent: 820
-  },
-  billingCycle: "monthly",
-  paymentMethod: "debit_6039",
-  billingDay: 20,
-  status: "active",
-  contract: null,
-  paymentHistory: [
-{
-      date: "2024-12-20",
-      amount: 820,
-      currency: "UYU",
-      uyuAmount: 820,
-      status: "paid",
-      method: "debit_6039",
-      automaticPayment: true,
-      operationNumber: "435521968838"
-    },
-    {
-      date: "2025-01-20",
-      amount: 820,
-      currency: "UYU",
-      uyuAmount: 820,
-      status: "paid",
-      method: "debit_6039",
-      automaticPayment: true
-    }
-  ],
-  monthlyMetrics: {
-    totalPaid: 1640,
-    nextPayment: {
-      date: "2025-02-20",  // Un mes después del último pago
-      estimatedAmount: 820
-    }
-  }
+        id: "BARB-2024",
+        name: "Barbería",
+        price: {
+          amount: 820,
+          currency: "UYU",
+          uyuEquivalent: 820
+        },
+        billingCycle: "monthly",
+        paymentMethod: "debit_6039",
+        billingDay: 20,
+        status: "active",
+        contract: null,
+        paymentHistory: [
+          {
+            date: "2024-12-20",
+            amount: 820,
+            currency: "UYU",
+            uyuAmount: 820,
+            status: "paid",
+            method: "debit_6039",
+            automaticPayment: true,
+            operationNumber: "435521968838"
+          },
+          {
+            date: "2025-01-20",
+            amount: 820,
+            currency: "UYU",
+            uyuAmount: 820,
+            status: "paid",
+            method: "debit_6039",
+            automaticPayment: true
+          }
+        ],
+        monthlyMetrics: {
+          totalPaid: 1640,
+          nextPayment: {
+            date: "2025-02-20",
+            estimatedAmount: 820
+          }
+        }
       }
     ]
   }
