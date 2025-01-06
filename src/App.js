@@ -275,6 +275,7 @@ const handleServiceUpdate = (newService) => {
   }
 
   return (
+  <BrowserRouter>
     <Box sx={responsiveStyles.container}>
       <Typography 
         variant={isMobile ? "h5" : "h4"} 
@@ -531,6 +532,8 @@ const handleServiceUpdate = (newService) => {
   )}
 </TabPanel>
     </Box>
+  </BrowserRouter>
+);
   );
 }
 
