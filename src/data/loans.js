@@ -146,33 +146,33 @@ const loans = [
     nextPaymentDate: "2025-02-03",
     isOverdue: false
   },
-  {
-    id: 5,
-    name: "Adelanto Sueldo BROU",
-    owner: "Yenni",
-    capital: 4800.00,
-    installments: 1,
-    amount: 4831.57,
-    paidInstallments: 1,
-    interestRate: 0,
-    status: "completed",
-    paymentHistory: [
-      { 
-        date: "2024-12-02",
-        amount: 4831.05,
-        status: "paid",
-        installmentNumber: 1,
-        paymentType: "regular"
-      }
-    ],
-    moratory: 43.18,  // Actualizado
-    ceipRetention: true,
-    currentBalance: 0,           // Pagado completamente
-    totalAmountToPay: 4831.05,   // 1 * 4831.05
-    remainingInstallments: 0,    // 1 - 1
-    nextPaymentDate: null,
-    isOverdue: false
-  }
+{
+  id: 5,
+  name: "Adelanto Sueldo BROU",
+  owner: "Yenni",
+  capital: 4800.00,
+  installments: 1,
+  amount: 4831.05,  // Corregido para que coincida con el pago realizado
+  paidInstallments: 1,
+  interestRate: 0,
+  status: "completed",
+  paymentHistory: [
+    { 
+      date: "2024-12-02",
+      amount: 4831.05,
+      status: "paid",
+      installmentNumber: 1,
+      paymentType: "regular"
+    }
+  ],
+  moratory: 43.18,
+  ceipRetention: true,
+  currentBalance: 0,
+  totalAmountToPay: 4831.05,  // Corregido para que coincida con amount
+  remainingInstallments: 0,
+  nextPaymentDate: null,
+  isOverdue: false
+}
 ];
 
 // Función de validación para verificar la integridad de los datos
