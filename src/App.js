@@ -534,7 +534,6 @@ const handleServiceUpdate = (newService) => {
     </Box>
   </BrowserRouter>
 );
-  );
 }
 
 export default App;
