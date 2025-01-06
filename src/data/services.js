@@ -39,118 +39,65 @@ const services = [
             automaticPayment: true
           }
         ],
-        monthlyMetrics: {
-          totalPaid: 1083.44,
-          nextPayment: {
-          date: "2025-02-03",  // Un mes después del último pago
-          estimatedAmount: 541.72
-        }
-        }
-      },
-      {
-id: "CHATGPT-2024",
-        name: "ChatGPT Plus",
-        price: {
-          amount: 19.99,
-          currency: "USD",
-          uyuEquivalent: 912.54,
-          exchangeRate: 45.65
-        },
-        billingCycle: "monthly",
-        paymentMethod: "debit_6039",
-        billingDay: 20,
-        status: "active",
-        contract: {
-          startDate: "2024-12-20",
-          renewalDate: "2025-01-20",
-          details: "Suscripción con renovación automática via Google Play"
-        },
-        paymentHistory: [
-          {
-            date: "2024-10-10",
-            amount: 20.00,
-            currency: "USD",
-            uyuAmount: 933,
-            exchangeRate: 46.65,
-            status: "paid",
-            method: "debit_2477",
-            automaticPayment: true
-          },
-          {
-            date: "2024-11-10",
-            amount: 20.00,
-            currency: "USD",
-            uyuAmount: 933,
-            exchangeRate: 46.65,
-            status: "paid",
-            method: "debit_2477",
-            automaticPayment: true
-          },
-          {
-            date: "2024-12-11",
-            amount: 20.00,
-            currency: "USD",
-            status: "cancelled",
-            method: "debit_2477",
-            automaticPayment: false,
-            details: "Plan cancelado - Fin de suscripción OpenAI"
-          },
-          {
-            date: "2024-12-20",
-            amount: 19.99,
-            currency: "USD",
-            uyuAmount: 912.54,
-            exchangeRate: 45.65,
-            status: "paid",
-            method: "debit_6039",
-            automaticPayment: true,
-            details: "Nueva suscripción via Google Play",
-            operationNumber: "GPA.3359-1513-1278-52925"
-          }
-        ],
-        monthlyMetrics: {
-          totalPaid: 3691.08,  // Suma de todos los pagos UYU
-          nextPayment: {
-            date: "2025-01-20",
-            estimatedAmount: 912.54
-          }
-        }
-      },
-      {
-        id: "CLDE-2024",
-        name: "Claude Pro",
-        price: {
-          amount: 20.00,
-          currency: "USD",
-          uyuEquivalent: 900,
-          exchangeRate: 45.00
-        },
-        billingCycle: "monthly",
-        paymentMethod: "debit_6039",
-        billingDay: 3,
-        status: "active",
-        contract: null,
-        paymentHistory: [
-          {
-            date: "2024-11-22",
-            amount: 20.00,
-            currency: "USD",
-            uyuAmount: 900,
-            exchangeRate: 45.00,
-            status: "paid",
-            method: "debit_6039",
-            automaticPayment: true
-          },
-          {
-            date: "2025-01-03",
-            amount: 20.00,
-            currency: "USD",
-            uyuAmount: 900,
-            exchangeRate: 45.00,
-            status: "paid",
-            method: "debit_6039",
-            automaticPayment: true
-          }
+        {
+  id: "CHATGPT-2024",
+  name: "ChatGPT Plus",
+  price: {
+    amount: 20.00,
+    currency: "USD",
+    uyuEquivalent: 912.54,
+    exchangeRate: 45.627
+  },
+  billingCycle: "monthly",
+  paymentMethod: "debit_6039",  // Actualizado para reflejar el método actual
+  billingDay: 20,  // Actualizado al día real de cobro
+  status: "active",
+  contract: null,
+  paymentHistory: [
+    {
+      date: "2024-10-10",
+      amount: 20.00,
+      currency: "USD",
+      uyuAmount: 933,
+      exchangeRate: 46.65,
+      status: "paid",
+      method: "debit_2477",
+      automaticPayment: true,
+      details: "Pago con tarjeta anterior"
+    },
+    {
+      date: "2024-11-10",
+      amount: 20.00,
+      currency: "USD",
+      uyuAmount: 933,
+      exchangeRate: 46.65,
+      status: "paid",
+      method: "debit_2477",
+      automaticPayment: true,
+      details: "Último pago con tarjeta anterior"
+    },
+    {
+      date: "2024-12-20",
+      amount: 20.00,
+      currency: "USD",
+      uyuAmount: 912.54,
+      exchangeRate: 45.627,
+      status: "paid",
+      method: "debit_6039",
+      automaticPayment: true,
+      operationNumber: "435521550125",
+      details: "Primer pago con nueva tarjeta"
+    }
+  ],
+  monthlyMetrics: {
+    totalPaid: 2778.54,
+    nextPayment: {
+      date: "2025-01-20",
+      estimatedAmount: 912.54
+    }
+  }
+},
+                }
         ],
         monthlyMetrics: {
           totalPaid: 1800,
@@ -160,16 +107,15 @@ id: "CHATGPT-2024",
           }
         }
       },
-      {
-        id: "GONE-2024",
-        id: "GONE-2024",
-        name: "Google One",
-        price: {
-          amount: 20.00,
-          currency: "USD",
-          uyuEquivalent: 887.56,
-          exchangeRate: 44.38
-        },
+        {
+          id: "GONE-2024",  // Solo un ID
+          name: "Google One",
+          price: {
+            amount: 20.00,
+            currency: "USD",
+            uyuEquivalent: 887.56,
+            exchangeRate: 44.38
+         },
         billingCycle: "annual",
         paymentMethod: "debit_6039",
         billingDay: 1,
