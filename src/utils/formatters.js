@@ -93,7 +93,7 @@ progress: (value, options = {}) => {
       return `${Math.round(normalizedValue)}${suffix}`;  // Esta es la línea 96
     } catch (error) {
       console.warn('Error formatting progress:', error);
-      return `0${suffix}`;
+      return '0%';
     }
   },
 
