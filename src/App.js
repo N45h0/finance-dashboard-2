@@ -19,6 +19,8 @@ import {
   Chip
 } from '@mui/material';
 
+import { SpeedInsights } from "@vercel/speed-insights/react";
+
 // Imports de Recharts para gráficos
 import { 
   LineChart, 
