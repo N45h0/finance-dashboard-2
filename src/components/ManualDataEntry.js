@@ -202,6 +202,7 @@ const ManualDataEntry = ({ onServiceAdd, onPaymentAdd }) => {
       />
 
       <ToastContainer position="bottom-right" />
+      <PaymentTracker payments={storageService.getPayments()} />
     </Box>
   );
 };
