@@ -184,6 +184,38 @@ function App() {
     const savedServices = localStorage.getItem('financeServices');
     return savedServices ? JSON.parse(savedServices) : services;
   });
+    const handlePaymentAdd = (serviceName, paymentDetails) => {
+    try {
+      // Guardar en almacenamiento local
+      const success = storageService.savePayment(serviceName, paymentDetails);
+      
+      if (success) {
+        // Actualizar el estado local
+        const updatedServices = servicesData.map(category => ({
+          ...category,
+          items: category.items.map(service => {
+            if (service.name === serviceName) {
+              return {
+                ...service,
+                paymentHistory: [...service.paymentHistory, paymentDetails],
+                monthlyMetrics: {
+                  ...service.monthlyMetrics,
+                  totalPaid: service.monthlyMetrics.totalPaid + paymentDetails.uyuAmount
+                }
+              };
+            }
+            return service;
+          })
+        }));
+        
+        setServicesData(updatedServices);
+        return true;
+      }
+    } catch (error) {
+      console.error('Error adding payment:', error);
+    }
+    return false;
+  };
 // JUSTO DESPUÉS DEL ESTADO DE SERVICES DATA
 const handleServiceUpdate = (newService) => {
   setServicesData(prevServices => {
