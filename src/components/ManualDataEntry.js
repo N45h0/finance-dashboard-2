@@ -1,412 +1,206 @@
-import React, { useState, useEffect } from 'react';
-import { 
-  Box, 
-  Typography, 
-  Button, 
-  TextField, 
-  Select, 
-  MenuItem, 
-  FormControl, 
+import React, { useState } from 'react';
+import {
+  Box,
+  Typography,
+  Button,
+  TextField,
+  Select,
+  MenuItem,
+  FormControl,
   InputLabel,
   Card,
   CardContent,
   Grid,
-  Alert
+  Alert,
+  Snackbar
 } from '@mui/material';
-import { Save } from 'lucide-react';
+import { Save, RefreshCw } from 'lucide-react';
 import { ToastContainer, toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
 
-// Importar servicios
-import { apiService } from '../services/apiService';
-
-// Importar préstamos y servicios de Data
-import loans from '../data/loans';
-import services from '../data/services';
-
-// Importar formatos
-import formatters from '../utils/formatters';
-
-const ManualDataEntry = ({ onServiceAdd }) => {
+const ManualDataEntry = ({ onServiceAdd, onPaymentAdd }) => {
   const [entryType, setEntryType] = useState('');
   const [formData, setFormData] = useState({
     name: '',
     amount: '',
     date: '',
     type: '',
-    owner: '',
+    method: '',
+    currency: 'UYU',
+    exchangeRate: '',
     description: ''
   });
-  // Función para obtener servicios
-  const getServices = () => {
-    const savedServices = localStorage.getItem('financeServices');
-    if (savedServices) {
-      const services = JSON.parse(savedServices);
-      return services[0]?.items || [];
-    }
-    return [];
-  };
 
-  // Efecto para precargar monto del servicio
-  useEffect(() => {
-    if (entryType === 'service_payment' && formData.name) {
-      const services = getServices();
-      const selectedService = services.find(s => s.name === formData.name);
-      if (selectedService) {
-        setFormData(prev => ({
-          ...prev,
-          amount: selectedService.price.uyuEquivalent.toString()
-        }));
-      }
-    }
-  }, [entryType, formData.name]);
-const entryTypes = [
-  { value: 'loan_payment', label: 'Pago de Préstamo' },
-  { value: 'new_loan', label: 'Nuevo Préstamo' },
-  { value: 'service_payment', label: 'Pago de Servicio' },
-  { value: 'new_service', label: 'Nuevo Servicio' },
-  { value: 'new_income', label: 'Nuevo Ingreso' }
-];
+  const [openSnackbar, setOpenSnackbar] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState('');
 
-  const handleTypeChange = (event) => {
-    setEntryType(event.target.value);
-    setFormData({
-      name: '',
-      amount: '',
-      date: '',
-      type: event.target.value,
-      owner: '',
-      description: ''
-    });
-  };
-
-  const handleInputChange = (event) => {
-    const { name, value } = event.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
-
-const handleSubmit = (event) => {
+  const handleSubmit = (event) => {
     event.preventDefault();
     
     try {
-      if (entryType === 'new_service') {
-        const newService = {
-          id: `SRV-${Date.now()}`,  // Agregar ID único
-          name: formData.name,
-          price: {
-            amount: parseFloat(formData.amount),
-            currency: 'UYU',
-            uyuEquivalent: parseFloat(formData.amount)
-          },
-          billingCycle: 'monthly',
-          paymentMethod: `debit_${formData.owner}`,
-          status: 'active',
-          billingDay: new Date().getDate()
-        };
+      const payment = {
+        date: formData.date,
+        amount: parseFloat(formData.amount),
+        currency: formData.currency,
+        exchangeRate: formData.currency === 'USD' ? parseFloat(formData.exchangeRate) : null,
+        uyuAmount: formData.currency === 'USD' ? 
+          parseFloat(formData.amount) * parseFloat(formData.exchangeRate) : 
+          parseFloat(formData.amount),
+        method: formData.method,
+        status: 'paid',
+        description: formData.description
+      };
 
-        onServiceAdd(newService);
-      } else if (entryType === 'service_payment') {
-        // Aquí iría la lógica para registrar un pago de servicio
-        console.log('Registrando pago de servicio:', formData);
-      }
+      onPaymentAdd(formData.name, payment);
       
-      toast.success('Datos guardados correctamente');
+      setSnackbarMessage('Pago registrado correctamente');
+      setOpenSnackbar(true);
       
       setFormData({
         name: '',
         amount: '',
         date: '',
-        type: entryType,
-        owner: '',
+        type: '',
+        method: '',
+        currency: 'UYU',
+        exchangeRate: '',
         description: ''
       });
     } catch (error) {
-      toast.error('Error al guardar los datos');
-      console.error('Error:', error);
-    }
-  };
-
-  const renderForm = () => {
-    switch (entryType) {
-      case 'loan_payment':
-        return (
-          <>
-            <Grid item xs={12} md={6}>
-              <FormControl fullWidth>
-  <InputLabel>Préstamo</InputLabel>
-  <Select
-    name="name"
-    value={formData.name}
-    onChange={handleInputChange}
-    label="Préstamo"
-  >
-    {loans.map(loan => (
-      <MenuItem key={loan.id} value={loan.name}>
-        {loan.name}
-      </MenuItem>
-    ))}
-  </Select>
-</FormControl>
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                label="Monto"
-                name="amount"
-                type="number"
-                value={formData.amount}
-                onChange={handleInputChange}
-              />
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                label="Fecha de Pago"
-                name="date"
-                type="date"
-                value={formData.date}
-                onChange={handleInputChange}
-                InputLabelProps={{ shrink: true }}
-              />
-            </Grid>
-          </>
-        );
-
-      case 'new_loan':
-        return (
-          <>
-            <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                label="Nombre del Préstamo"
-                name="name"
-                value={formData.name}
-                onChange={handleInputChange}
-              />
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                label="Capital"
-                name="amount"
-                type="number"
-                value={formData.amount}
-                onChange={handleInputChange}
-              />
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <FormControl fullWidth>
-                <InputLabel>Titular</InputLabel>
-                <Select
-                  name="owner"
-                  value={formData.owner}
-                  onChange={handleInputChange}
-                  label="Titular"
-                >
-                  <MenuItem value="LAFIO">LAFIO</MenuItem>
-                  <MenuItem value="Lovia">Lovia</MenuItem>
-                </Select>
-              </FormControl>
-            </Grid>
-          </>
-        );
-
-case 'service_payment':
-        return (
-          <>
-            <Grid item xs={12} md={6}>
-              <FormControl fullWidth>
-  <InputLabel>Servicio</InputLabel>
-  <Select
-    name="name"
-    value={formData.name}
-    onChange={handleInputChange}
-    label="Servicio"
-  >
-    {services[0].items.map((service) => (
-      <MenuItem key={service.id} value={service.name}>
-        {service.name} - {formatters.currency(service.price.uyuEquivalent)}
-      </MenuItem>
-    ))}
-  </Select>
-</FormControl>
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                label="Monto"
-                name="amount"
-                type="number"
-                value={formData.amount}
-                onChange={handleInputChange}
-              />
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                label="Fecha de Pago"
-                name="date"
-                type="date"
-                value={formData.date}
-                onChange={handleInputChange}
-                InputLabelProps={{ shrink: true }}
-              />
-            </Grid>
-          </>
-        );
-      case 'new_service':
-        return (
-          <>
-            <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                label="Nombre del Servicio"
-                name="name"
-                value={formData.name}
-                onChange={handleInputChange}
-              />
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                label="Monto Mensual"
-                name="amount"
-                type="number"
-                value={formData.amount}
-                onChange={handleInputChange}
-              />
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <FormControl fullWidth>
-                <InputLabel>Cuenta</InputLabel>
-                <Select
-                  name="owner"
-                  value={formData.owner}
-                  onChange={handleInputChange}
-                  label="Cuenta"
-                >
-                  <MenuItem value="6039">Brou Débito 6039</MenuItem>
-                  <MenuItem value="2477">Visa Santander Débito</MenuItem>
-                  <MenuItem value="3879">Prex Mastercard UY</MenuItem>
-                </Select>
-              </FormControl>
-            </Grid>
-          </>
-        );
-case 'new_income':
-  return (
-    <>
-      <Grid item xs={12} md={6}>
-        <TextField
-          fullWidth
-          label="Fuente de Ingreso"
-          name="name"
-          value={formData.name}
-          onChange={handleInputChange}
-        />
-      </Grid>
-      <Grid item xs={12} md={6}>
-        <TextField
-          fullWidth
-          label="Monto"
-          name="amount"
-          type="number"
-          value={formData.amount}
-          onChange={handleInputChange}
-        />
-      </Grid>
-      <Grid item xs={12} md={6}>
-        <FormControl fullWidth>
-          <InputLabel>Titular</InputLabel>
-          <Select
-            name="owner"
-            value={formData.owner}
-            onChange={handleInputChange}
-          >
-            <MenuItem value="Ignacio">Ignacio</MenuItem>
-            <MenuItem value="Yenniffer">Yenniffer</MenuItem>
-          </Select>
-        </FormControl>
-      </Grid>
-    </>
-  );
-      default:
-        return null;
+      setSnackbarMessage('Error al registrar el pago');
+      setOpenSnackbar(true);
     }
   };
 
   return (
     <Box sx={{ p: 2 }}>
-      <Typography variant="h6" gutterBottom>
-        Ingreso Manual de Datos
-      </Typography>
-
-      <Card sx={{ mb: 3 }}>
+      <Card>
         <CardContent>
-          <FormControl fullWidth sx={{ mb: 3 }}>
-            <InputLabel>Tipo de Entrada</InputLabel>
-            <Select
-              value={entryType}
-              onChange={handleTypeChange}
-              label="Tipo de Entrada"
-            >
-              {entryTypes.map(type => (
-                <MenuItem key={type.value} value={type.value}>
-                  {type.label}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
+          <Typography variant="h6" gutterBottom>
+            Registrar Nuevo Pago
+          </Typography>
 
-          {entryType && (
-            <form onSubmit={handleSubmit}>
-              <Grid container spacing={3}>
-                {renderForm()}
-                <Grid item xs={12}>
+          <form onSubmit={handleSubmit}>
+            <Grid container spacing={2}>
+              <Grid item xs={12} md={6}>
+                <FormControl fullWidth>
+                  <InputLabel>Servicio/Préstamo</InputLabel>
+                  <Select
+                    name="name"
+                    value={formData.name}
+                    onChange={(e) => setFormData({...formData, name: e.target.value})}
+                  >
+                    <MenuItem value="ChatGPT Plus">ChatGPT Plus</MenuItem>
+                    <MenuItem value="Claude Pro">Claude Pro</MenuItem>
+                    <MenuItem value="Spotify Premium">Spotify Premium</MenuItem>
+                    <MenuItem value="Google One">Google One</MenuItem>
+                    <MenuItem value="Plan Antel">Plan Antel</MenuItem>
+                    <MenuItem value="Alquiler">Alquiler</MenuItem>
+                    <MenuItem value="BROU Dentista">BROU Dentista</MenuItem>
+                    <MenuItem value="BROU Buenos Aires">BROU Buenos Aires</MenuItem>
+                  </Select>
+                </FormControl>
+              </Grid>
+
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
+                  label="Monto"
+                  name="amount"
+                  type="number"
+                  value={formData.amount}
+                  onChange={(e) => setFormData({...formData, amount: e.target.value})}
+                />
+              </Grid>
+
+              <Grid item xs={12} md={6}>
+                <FormControl fullWidth>
+                  <InputLabel>Moneda</InputLabel>
+                  <Select
+                    name="currency"
+                    value={formData.currency}
+                    onChange={(e) => setFormData({...formData, currency: e.target.value})}
+                  >
+                    <MenuItem value="UYU">UYU</MenuItem>
+                    <MenuItem value="USD">USD</MenuItem>
+                  </Select>
+                </FormControl>
+              </Grid>
+
+              {formData.currency === 'USD' && (
+                <Grid item xs={12} md={6}>
                   <TextField
                     fullWidth
-                    multiline
-                    rows={3}
-                    label="Observaciones"
-                    name="description"
-                    value={formData.description}
-                    onChange={handleInputChange}
+                    label="Tipo de Cambio"
+                    name="exchangeRate"
+                    type="number"
+                    value={formData.exchangeRate}
+                    onChange={(e) => setFormData({...formData, exchangeRate: e.target.value})}
                   />
                 </Grid>
-                <Grid item xs={12}>
-                  <Button
-                    variant="contained"
-                    color="primary"
-                    type="submit"
-                    startIcon={<Save />}
-                  >
-                    Guardar
-                  </Button>
-                </Grid>
+              )}
+
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
+                  label="Fecha de Pago"
+                  name="date"
+                  type="date"
+                  value={formData.date}
+                  onChange={(e) => setFormData({...formData, date: e.target.value})}
+                  InputLabelProps={{ shrink: true }}
+                />
               </Grid>
-            </form>
-          )}
+
+              <Grid item xs={12} md={6}>
+                <FormControl fullWidth>
+                  <InputLabel>Método de Pago</InputLabel>
+                  <Select
+                    name="method"
+                    value={formData.method}
+                    onChange={(e) => setFormData({...formData, method: e.target.value})}
+                  >
+                    <MenuItem value="debit_6039">Brou Débito 6039</MenuItem>
+                    <MenuItem value="transfer_6039">Transferencia Brou</MenuItem>
+                    <MenuItem value="debit_2477">Visa Santander</MenuItem>
+                  </Select>
+                </FormControl>
+              </Grid>
+
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  multiline
+                  rows={3}
+                  label="Descripción/Detalles"
+                  name="description"
+                  value={formData.description}
+                  onChange={(e) => setFormData({...formData, description: e.target.value})}
+                />
+              </Grid>
+
+              <Grid item xs={12}>
+                <Button
+                  variant="contained"
+                  color="primary"
+                  type="submit"
+                  startIcon={<Save />}
+                >
+                  Registrar Pago
+                </Button>
+              </Grid>
+            </Grid>
+          </form>
         </CardContent>
       </Card>
 
-      <Alert severity="info" sx={{ mb: 2 }}>
-        Use este formulario para ingresar manualmente nuevos datos o actualizar información existente.
-      </Alert>
-
-      <ToastContainer
-        position="bottom-right"
-        autoClose={5000}
-        hideProgressBar={false}
-        newestOnTop
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
+      <Snackbar
+        open={openSnackbar}
+        autoHideDuration={6000}
+        onClose={() => setOpenSnackbar(false)}
+        message={snackbarMessage}
       />
+
+      <ToastContainer position="bottom-right" />
     </Box>
   );
 };
