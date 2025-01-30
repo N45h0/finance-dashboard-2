@@ -557,13 +557,16 @@ const handleServiceUpdate = (newService) => {
       </TabPanel>
 
       {/* Panel de Cargar Datos */}
-<TabPanel value={value} index={5}>
-  {isLoading ? (
-    <CircularProgress />
-  ) : (
-    <ManualDataEntry onServiceAdd={handleServiceUpdate} />
-  )}
-</TabPanel>
+      <TabPanel value={value} index={5}>
+        {isLoading ? (
+          <CircularProgress />
+        ) : (
+          <ManualDataEntry 
+            onServiceAdd={handleServiceUpdate} 
+            onPaymentAdd={handlePaymentAdd}
+          />
+        )}
+      </TabPanel>
     </Box>
   </BrowserRouter>
 );
