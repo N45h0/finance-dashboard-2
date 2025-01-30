@@ -193,9 +193,17 @@ const ManualDataEntry = ({ onServiceAdd, onPaymentAdd }) => {
             </Grid>
           </form>
         </CardContent>
-      </Card>
+        </Card>
 
-      <Snackbar
+        {/* Agregar un espacio y un título para el historial */}
+        <Box sx={{ mt: 4 }}>
+          <Typography variant="h6" gutterBottom>
+            Historial de Pagos Registrados
+          </Typography>
+          <PaymentTracker payments={storageService.getPayments()} />
+        </Box>
+
+        <Snackbar
         open={openSnackbar}
         autoHideDuration={6000}
         onClose={() => setOpenSnackbar(false)}
