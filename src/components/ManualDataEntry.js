@@ -17,6 +17,7 @@ import {
 import { Save, RefreshCw } from 'lucide-react';
 import { ToastContainer, toast } from 'react-toastify';
 import PaymentTracker from './PaymentTracker';
+import { storageService } from '../services/storageService';
 
 const ManualDataEntry = ({ onServiceAdd, onPaymentAdd }) => {
   const [entryType, setEntryType] = useState('');
