@@ -54,6 +54,7 @@ import loans from './data/loans';
 import services from './data/services';
 import accounts from './data/accounts';
 import income from './data/income';
+import { storageService } from './services/storageService';
 
 // Importar utilidades y servicios
 import { calculateLoans, calculateServices } from './utils/calculations';
